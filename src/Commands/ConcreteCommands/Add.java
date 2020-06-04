@@ -2,6 +2,7 @@ package Commands.ConcreteCommands;
 
 import Commands.Command;
 import Commands.CommandReceiver;
+import Commands.SerializedCommands.SerializedObjectCommand;
 
 import java.io.IOException;
 import java.net.Socket;
@@ -14,7 +15,9 @@ public class Add extends Command {
 
     @Override
     public void execute(Object argObject, Socket socket) throws IOException {
+        SerializedObjectCommand objectCommand = (SerializedObjectCommand) argObject;
+        Object object = objectCommand.getObject();
         CommandReceiver commandReceiver = new CommandReceiver(socket);
-        commandReceiver.add(argObject);
+        commandReceiver.add(object);
     }
 }

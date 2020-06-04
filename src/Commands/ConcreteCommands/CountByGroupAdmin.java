@@ -3,6 +3,7 @@ package Commands.ConcreteCommands;
 import BasicClasses.Person;
 import Commands.Command;
 import Commands.CommandReceiver;
+import Commands.SerializedCommands.SerializedObjectCommand;
 
 import java.io.IOException;
 import java.net.Socket;
@@ -15,8 +16,10 @@ public class CountByGroupAdmin extends Command {
 
     @Override
     public void execute(Object argObject, Socket socket) throws IOException {
+        SerializedObjectCommand objectCommand = (SerializedObjectCommand) argObject;
+        Object arg = objectCommand.getObject();
         CommandReceiver commandReceiver = new CommandReceiver(socket);
-        commandReceiver.countByGroupAdmin((Person) argObject);
+        commandReceiver.countByGroupAdmin((Person) arg);
     }
 
 }
