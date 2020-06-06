@@ -17,14 +17,16 @@ import org.apache.ibatis.jdbc.ScriptRunner;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import Commands.Utils.HashEncrypter;
+
 public class DatabaseManagerImpl {
-    private final String url = "jdbc:postgresql://localhost:5432/postgres";
+    private final String url = "jdbc:postgresql://localhost:5432/ITMO";
     private final String user = "postgres";
-    private final String password;
+    private final String password = "sasha";
+    private final String salty = "Pozhalyista_Postavte_10_ballov";
     private static final Logger logger = LoggerFactory.getLogger(DatabaseManagerImpl.class);
 
-    public DatabaseManagerImpl(String password) {
-        this.password = password;
+    public DatabaseManagerImpl() {
         try {
             Class.forName("org.postgresql.Driver");
             logger.info("Драйвер подключён");
@@ -328,7 +330,7 @@ public class DatabaseManagerImpl {
                     "VALUES (?, ?)";
             PreparedStatement statement = connection.prepareStatement(query);
             statement.setString(1, username);
-            statement.setString(2, password);
+            statement.setString(2, HashEncrypter.encryptString(password + salty));
 
             statement.executeUpdate();
         });
@@ -359,5 +361,11 @@ public class DatabaseManagerImpl {
             }
             return ids;
         });
+    }
+
+    public boolean validateUserData(String login, String password) throws DatabaseException {
+        String realPassword = getPassword(login);
+
+        return HashEncrypter.encryptString(password + salty).equals(realPassword);
     }
 }

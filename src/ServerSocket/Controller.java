@@ -1,6 +1,7 @@
 package ServerSocket;
 
 import Collection.CollectionManager;
+import Exceptions.DatabaseException;
 import Utils.CommandHandler.Decrypting;
 //import Utils.JSON.ParserJson;
 
@@ -48,6 +49,8 @@ public class Controller {
 
                     } catch (EOFException | SocketException ex) {
                         logger.info("Клиент " + clientSocket + " того, откинулся...");
+                    } catch (InterruptedException | DatabaseException e) {
+                        e.printStackTrace();
                     } finally {
                         clientSocket.close();
                         if (in != null) { in.close(); }
