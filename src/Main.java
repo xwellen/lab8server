@@ -6,13 +6,18 @@ import java.sql.SQLException;
 
 public class Main {
     public static void main(String[] args) throws IOException {
-//        Runtime.getRuntime().addShutdownHook(new Thread(ParserJson::collectionToJson));
-        Controller controller = new Controller();
-        controller.run(args[0]);
-//        try {
-//            DatabaseManagerImpl databaseManager = new DatabaseManagerImpl();
-//        } catch (SQLException e) {
-//            e.printStackTrace();
-//        }
+        try {
+//            Runtime.getRuntime().addShutdownHook(new Thread(ParserJson::collectionToJson));
+            Controller controller = new Controller();
+            controller.run(args[0]);
+//            try {
+//                DatabaseManagerImpl databaseManager = new DatabaseManagerImpl(args[1]);
+//            } catch (SQLException e) {
+//                e.printStackTrace();
+//            }
+        } catch (ArrayIndexOutOfBoundsException ex) {
+            System.out.println("Введено некорректное количество аргументов.\n" +
+                    "Требуются 2 аргумента: порт, пароль к бд");
+        }
     }
 }

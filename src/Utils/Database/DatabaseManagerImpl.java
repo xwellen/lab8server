@@ -10,10 +10,9 @@ import org.apache.ibatis.jdbc.ScriptRunner;
 public class DatabaseManagerImpl {
     private final String url = "jdbc:postgresql://localhost:5432/postgres";
     private final String user = "postgres";
-    private final String password = "...";
     private Connection connection;
     private Statement statement;
-    public DatabaseManagerImpl() throws SQLException {
+    public DatabaseManagerImpl(String password) throws SQLException {
         connection = DriverManager.getConnection(url, user, password);
         statement = connection.createStatement();
 
