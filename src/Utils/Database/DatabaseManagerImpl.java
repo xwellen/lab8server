@@ -68,8 +68,8 @@ public class DatabaseManagerImpl {
      * @return назначенный базой данных id для этого элемента
      * @throws DatabaseException если что-то пошло не так при работе с базой данных
      */
-    public Long addElement(StudyGroup studyGroup, String username) throws DatabaseException {
-        return this.<Long>handleQuery((Connection connection) -> {
+    public Integer addElement(StudyGroup studyGroup, String username) throws DatabaseException {
+        return this.<Integer>handleQuery((Connection connection) -> {
 
             Person groupAdmin = studyGroup.getGroupAdmin();
             String addPersonSql = "INSERT INTO person (person_name, height, eye_color, hair_color, nationality)" +
@@ -108,7 +108,7 @@ public class DatabaseManagerImpl {
                 result.next();
 
                 logger.info("В коллекцию добавлен элемент");
-                return result.getLong(1);
+                return result.getInt(1);
             } else {
                 throw new SQLException("Creating user failed, no ID obtained.");
             }
