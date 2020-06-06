@@ -33,7 +33,7 @@ public class Validator {
     }
 
     public static boolean validatePerson(Person person) {
-        return (person.getName() != null && !person.getName().equals("")) &&
+        return (person != null && person.getName() != null && !person.getName().equals("")) &&
                 person.getHeight() > 0 &&
                 checkExistColor(person.getEyeColor().toString()) &&
                 checkExistColor(person.getHairColor().toString()) &&

@@ -37,11 +37,6 @@ public class CollectionManager {
         linkedList.add(studyGroup);
     }
 
-    public void addJsonObject(StudyGroup studyGroup) {
-        studyGroup.setId(IDGenerator.generateID(studyGroup.getId()));
-        linkedList.add(studyGroup);
-    }
-
     public String getInfo() {
         String info = "";
         info += "Тип коллекции – " + linkedList.getClass().getName() + "\n";
