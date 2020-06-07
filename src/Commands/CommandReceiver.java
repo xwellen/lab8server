@@ -124,6 +124,7 @@ public class CommandReceiver {
             try {
                 groupId = Integer.parseInt(ID);
                 if (CollectionUtils.checkExist(groupId)) {
+                    databaseManager.removeById(groupId, login);
                     collectionManager.removeById(groupId);
                     out.writeObject(new SerializedMessage("Элемент с ID " + groupId + " успешно удален из коллекции."));
                 } else {
