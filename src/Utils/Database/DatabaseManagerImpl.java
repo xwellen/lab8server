@@ -191,17 +191,17 @@ public class DatabaseManagerImpl {
                             "coordinateY = ?," +
                             "creationDate = ?," +
                             "studentsCount = ?," +
-                            "formOfEducation = ?::formOfEducation" +
+                            "formOfEducation = ?::formOfEducation," +
                             "semester = ?::semester" +
                             " FROM \"user\"" +
                             " WHERE studyGroup.studyGroup_id = ? AND studyGroup.user_id = \"user\".id AND \"user\".login = ?;" +
-                            "UPDATE person" +
+                            " UPDATE person" +
                             " SET person_name = ?," +
                             "height = ?," +
                             "eye_color = ?::color," +
                             "hair_color = ?::color," +
                             "nationality = ?::country" +
-                            "FROM studyGroup, \"user\"" +
+                            " FROM studyGroup, \"user\"" +
                             " WHERE studyGroup.person_id = person.person_id and studyGroup.studyGroup_id = ? AND studyGroup.user_id = \"user\".id AND \"user\".login = ?";
             PreparedStatement statement = connection.prepareStatement(query);
             statement.setString(1, studyGroup.getName());
@@ -216,15 +216,15 @@ public class DatabaseManagerImpl {
             statement.setString(9, username);
 
             Person groupAdmin = studyGroup.getGroupAdmin();
-            statement.setString(11, groupAdmin.getName());
-            statement.setInt(12, groupAdmin.getHeight());
-            statement.setString(13, groupAdmin.getEyeColor().name());
-            statement.setString(14, groupAdmin.getHairColor().name());
-            statement.setString(15, groupAdmin.getNationality().name());
+            statement.setString(10, groupAdmin.getName());
+            statement.setInt(11, groupAdmin.getHeight());
+            statement.setString(12, groupAdmin.getEyeColor().name());
+            statement.setString(13, groupAdmin.getHairColor().name());
+            statement.setString(14, groupAdmin.getNationality().name());
 
-            statement.setInt(16, id);
+            statement.setInt(15, id);
 
-            statement.setString(17, username);
+            statement.setString(16, username);
 
             int result = statement.executeUpdate();
 

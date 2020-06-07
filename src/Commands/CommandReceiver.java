@@ -94,11 +94,13 @@ public class CommandReceiver {
             try {
                 groupId = Integer.parseInt(ID);
                 if (CollectionUtils.checkExist(groupId)) {
-                    if (Validator.validateStudyGroup(studyGroup)) {
+                    try {
+                        databaseManager.updateById(studyGroup, groupId, login);
                         collectionManager.update(studyGroup, groupId);
                         out.writeObject(new SerializedMessage("Команда update выполнена."));
-                    } else {
-                        out.writeObject(new SerializedMessage("Полученный элемент не прошел валидацию на стороне сервера."));
+                    } catch (Exception e){
+                        e.printStackTrace();
+                        out.writeObject(new SerializedMessage("Элемент не обновлен: " + e));
                     }
                 } else {
                     out.writeObject(new SerializedMessage("Элемента с таким ID нет в коллекции."));

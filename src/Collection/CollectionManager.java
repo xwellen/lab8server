@@ -25,7 +25,11 @@ public class CollectionManager {
     }
 
     public void initList() {
-        if (linkedList == null) { linkedList = new LinkedList<>(); creationDate = ZonedDateTime.now(); }
+        if (linkedList == null) {
+            linkedList = new LinkedList<>();
+            creationDate = ZonedDateTime.now();
+        } else linkedList.clear();
+
     }
 
     public LinkedList<StudyGroup> getLinkedList() {
