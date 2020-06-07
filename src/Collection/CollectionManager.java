@@ -89,30 +89,32 @@ public class CollectionManager {
         else { return  "Коллекция пуста."; }
     }
 
-    public String removeGreater(StudyGroup studyGroup) {
+    public List<Integer> removeGreater(StudyGroup studyGroup, List<Integer> ids) {
         res.clear();
-        linkedList.forEach(listStudyGroup -> {
-            if (listStudyGroup.compareTo(studyGroup) > 0) {
+        Iterator<StudyGroup> iterator = linkedList.iterator();
+        while (iterator.hasNext()){
+            StudyGroup listStudyGroup = iterator.next();
+            if (ids.contains(listStudyGroup.getId()) && listStudyGroup.compareTo(studyGroup) > 0) {
                 appendToList(listStudyGroup.getId());
-                linkedList.remove(listStudyGroup);
+                iterator.remove();
             }
-        });
+        }
 
-        if (res.isEmpty()) return "Таких элементов не найдено";
-        return "Из коллекции удалены элементы с ID: " + res.toString().replaceAll("[\\[\\]]", "");
+        return res;
     }
 
-    public String removeLower(StudyGroup studyGroup) {
+    public List<Integer> removeLower(StudyGroup studyGroup, List<Integer> ids) {
         res.clear();
-        linkedList.forEach(listStudyGroup -> {
-            if (listStudyGroup.compareTo(studyGroup) < 0) {
+        Iterator<StudyGroup> iterator = linkedList.iterator();
+        while (iterator.hasNext()){
+            StudyGroup listStudyGroup = iterator.next();
+            if (ids.contains(listStudyGroup.getId()) && listStudyGroup.compareTo(studyGroup) < 0) {
                 appendToList(listStudyGroup.getId());
-                linkedList.remove(listStudyGroup);
+                iterator.remove();
             }
-        });
+        }
 
-        if (res.isEmpty()) return "Таких элементов не найдено";
-        return "Из коллекции удалены элементы с ID: " + res.toString().replaceAll("[\\[\\]]", "");
+        return res;
     }
 
     public String minBySemesterEnum() {

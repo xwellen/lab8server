@@ -145,7 +145,7 @@ public class CommandReceiver {
             deleteID.forEach(id -> collectionManager.removeById(id));
             ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
 
-            out.writeObject(new SerializedMessage("Ваши элементы колекции удалены"));
+            out.writeObject(new SerializedMessage("Ваши элементы колекции удалены."));
             logger.info(String.format("Клиенту %s:%s отправлен результат работы команды CLEAR", socket.getInetAddress(), socket.getPort()));
         }
     }
@@ -164,7 +164,22 @@ public class CommandReceiver {
             ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
 
             if (Validator.validateStudyGroup(studyGroup)) {
-                out.writeObject(new SerializedMessage(collectionManager.removeGreater(studyGroup)));
+                List<Integer> ids = collectionManager.removeGreater(studyGroup, databaseManager.getIdOfUserElements(login));
+                if (ids.isEmpty()) out.writeObject(new SerializedMessage("Таких элементов не найдено"));
+                else out.writeObject(new SerializedMessage("Из коллекции удалены элементы с ID: " +
+                        ids.toString().replaceAll("[\\[\\]]", "")));
+
+                ids.forEach(id -> {
+                    try {
+                        databaseManager.removeById(id, login);
+                    } catch (DatabaseException e) {
+                        try {
+                            out.writeObject(new SerializedMessage("Ошибка при удалении из бд элемента с id="+ id + "\n" + e));
+                        } catch (IOException ex) {
+                            ex.printStackTrace();
+                        }
+                    }
+                });
             } else {
                 out.writeObject(new SerializedMessage("Полученный элемент не прошел валидацию на стороне сервера."));
             }
@@ -178,7 +193,22 @@ public class CommandReceiver {
             ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
 
             if (Validator.validateStudyGroup(studyGroup)) {
-                out.writeObject(new SerializedMessage(collectionManager.removeLower(studyGroup)));
+                List<Integer> ids = collectionManager.removeLower(studyGroup, databaseManager.getIdOfUserElements(login));
+                if (ids.isEmpty()) out.writeObject(new SerializedMessage("Таких элементов не найдено"));
+                else out.writeObject(new SerializedMessage("Из коллекции удалены элементы с ID: " +
+                        ids.toString().replaceAll("[\\[\\]]", "")));
+
+                ids.forEach(id -> {
+                    try {
+                        databaseManager.removeById(id, login);
+                    } catch (DatabaseException e) {
+                        try {
+                            out.writeObject(new SerializedMessage("Ошибка при удалении из бд элемента с id="+ id + "\n" + e));
+                        } catch (IOException ex) {
+                            ex.printStackTrace();
+                        }
+                    }
+                });
             } else {
                 out.writeObject(new SerializedMessage("Полученный элемент не прошел валидацию на стороне сервера."));
             }

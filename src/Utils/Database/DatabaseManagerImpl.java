@@ -370,6 +370,29 @@ public class DatabaseManagerImpl {
         });
     }
 
+    /**
+     * @param username имя пользователя
+     * @return список id элементов, которые создал пользователь
+     * @throws DatabaseException если что-то пошло не так при работе с базой данных
+     */
+    public List<Integer> getIdOfUserElements(String username) throws DatabaseException {
+        return handleQuery((Connection connection) -> {
+            String query = "SELECT studyGroup_id FROM studyGroup, \"user\"" +
+                    " WHERE studyGroup.user_id = \"user\".id AND \"user\".login = ?";
+
+            PreparedStatement statement = connection.prepareStatement(query);
+            statement.setString(1, username);
+            ResultSet result = statement.executeQuery();
+
+            ArrayList<Integer> ids = new ArrayList<>();
+
+            while (result.next()) {
+                ids.add(result.getInt("studyGroup_id"));
+            }
+            return ids;
+        });
+    }
+
     public boolean validateUserData(String login, String password) throws DatabaseException {
         String realPassword = getPassword(login);
 
