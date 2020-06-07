@@ -15,6 +15,7 @@ import java.io.*;
 import java.net.Socket;
 import java.sql.SQLException;
 import java.util.Arrays;
+import java.util.List;
 
 /**
  * Ресивер(получатель), отправляет серилизованные объекты на сервер.
@@ -140,10 +141,11 @@ public class CommandReceiver {
 
     public void clear() throws IOException, DatabaseException {
         if (checkUser()) {
-            collectionManager.clear();
+            List<Integer> deleteID = databaseManager.clear(login);
+            deleteID.forEach(id -> collectionManager.removeById(id));
             ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
 
-            out.writeObject(new SerializedMessage("Коллекция успешно очищена."));
+            out.writeObject(new SerializedMessage("Ваши элементы колекции удалены"));
             logger.info(String.format("Клиенту %s:%s отправлен результат работы команды CLEAR", socket.getInetAddress(), socket.getPort()));
         }
     }
