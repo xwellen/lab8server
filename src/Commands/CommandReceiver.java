@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.net.Socket;
+import java.sql.SQLException;
 
 /**
  * Ресивер(получатель), отправляет серилизованные объекты на сервер.
@@ -67,13 +68,13 @@ public class CommandReceiver {
     public void add(Object o) throws IOException, DatabaseException {
         if (checkUser()) {
             ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
-            StudyGroup studyGroup = (StudyGroup) o;
-
-            if (Validator.validateStudyGroup(studyGroup)) {
+            try {
+                StudyGroup studyGroup = (StudyGroup) o;
+                studyGroup.setId(databaseManager.addElement(studyGroup, login));
                 collectionManager.add(studyGroup);
                 out.writeObject(new SerializedMessage("Элемент добавлен в коллекцию."));
-            } else {
-                out.writeObject(new SerializedMessage("Полученный элемент не прошел валидацию на стороне сервера."));
+            } catch (Exception e){
+                out.writeObject(new SerializedMessage("Полученный элемент не добавлен: " + e));
             }
 
             logger.info(String.format("Клиенту %s:%s отправлен результат работы команды ADD", socket.getInetAddress(), socket.getPort()));

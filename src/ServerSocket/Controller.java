@@ -3,13 +3,13 @@ package ServerSocket;
 import Collection.CollectionManager;
 import Exceptions.DatabaseException;
 import Utils.CommandHandler.Decrypting;
-//import Utils.JSON.ParserJson;
 
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
 
+import Utils.Database.DatabaseManagerImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,7 +26,11 @@ public class Controller {
                 CollectionManager collectionManager = CollectionManager.getCollectionManager();
                 collectionManager.initList();
                 logger.info("Создана пустая коллекция");
-//                ParserJson.fromJsonToCollection();
+                try {
+                    new DatabaseManagerImpl().loadCollectionFromDatabase(collectionManager);
+                } catch (DatabaseException e) {
+                    logger.error("Ошибка при выгрузке коллекции: " + e);
+                }
                 try {
                     port = Integer.parseInt(strPort);
                 } catch (NumberFormatException ex) {

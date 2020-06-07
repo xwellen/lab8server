@@ -1,10 +1,7 @@
 package BasicClasses;
 
-import Utils.IDGenerator;
-
 import java.io.Serializable;
 import java.time.ZonedDateTime;
-import java.util.Random;
 
 public class StudyGroup implements Comparable<StudyGroup>, Serializable {
     private Integer id; //Поле не может быть null, Значение поля должно быть больше 0, Значение этого поля должно быть уникальным, Значение этого поля должно генерироваться автоматически
@@ -17,7 +14,7 @@ public class StudyGroup implements Comparable<StudyGroup>, Serializable {
     private Person groupAdmin; //Поле не может быть null
 
     public StudyGroup(String name, Coordinates coordinates, Integer studentsCount, FormOfEducation formOfEducation, Semester semesterEnum, Person groupAdmin) {
-        this.id = IDGenerator.generateID();
+        this.id = 0;
         this.name = name;
         this.coordinates = coordinates;
         this.creationDate = java.time.ZonedDateTime.now();
