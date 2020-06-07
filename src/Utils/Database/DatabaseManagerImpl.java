@@ -100,7 +100,8 @@ public class DatabaseManagerImpl {
                 elementStatement.setFloat(3, coordinates.getY());
                 elementStatement.setTimestamp(4, Timestamp.valueOf(studyGroup.getCreationDate().toLocalDateTime()));
                 elementStatement.setInt(5, studyGroup.getStudentsCount());
-                elementStatement.setString(6, studyGroup.getFormOfEducation().name());
+                if (studyGroup.getFormOfEducation() == null) elementStatement.setString(6, null);
+                else elementStatement.setString(6, studyGroup.getFormOfEducation().name());
                 elementStatement.setString(7, studyGroup.getSemesterEnum().name());
                 elementStatement.setInt(8, rs.getInt(1));
                 elementStatement.setString(9, username);
@@ -208,7 +209,8 @@ public class DatabaseManagerImpl {
             statement.setFloat(3, studyGroup.getCoordinates().getY());
             statement.setTimestamp(4, Timestamp.valueOf(studyGroup.getCreationDate().toLocalDateTime()));
             statement.setInt(5, studyGroup.getStudentsCount());
-            statement.setString(6, studyGroup.getFormOfEducation().name());
+            if (studyGroup.getFormOfEducation() == null) statement.setString(6, null);
+            else statement.setString(6, studyGroup.getFormOfEducation().name());
             statement.setString(7, studyGroup.getSemesterEnum().name());
             statement.setInt(8, id);
             statement.setString(9, username);
@@ -247,6 +249,11 @@ public class DatabaseManagerImpl {
             ResultSet rs = statement.executeQuery(query);
             StudyGroup studyGroup;
             while (rs.next()) {
+                FormOfEducation formOfEducation = null;
+                if (rs.getString("formOfEducation") != null) {
+                    formOfEducation = FormOfEducation.valueOf(rs.getString("formOfEducation"));
+                }
+
                 studyGroup = new StudyGroup(
                         rs.getString("studyGroup_name"),
                         new Coordinates(
@@ -254,7 +261,7 @@ public class DatabaseManagerImpl {
                                 rs.getFloat("coordinatey")
                         ),
                         rs.getInt("studentsCount"),
-                        FormOfEducation.valueOf(rs.getString("formOfEducation")),
+                        formOfEducation,
                         Semester.valueOf(rs.getString("semester")),
                         new Person(
                                 rs.getString("person_name"),

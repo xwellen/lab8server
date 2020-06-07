@@ -9,7 +9,7 @@ CREATE TABLE public.person
     height integer,
     eye_color color NOT NULL,
     hair_color color NOT NULL,
-    nationality country,
+    nationality country NOT NULL,
     CONSTRAINT person_pkey PRIMARY KEY (person_id),
     CONSTRAINT person_person_name_check CHECK (person_name::text > ''::text),
     CONSTRAINT person_height_check CHECK (height > 0)

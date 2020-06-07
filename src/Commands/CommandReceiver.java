@@ -14,6 +14,7 @@ import org.slf4j.LoggerFactory;
 import java.io.*;
 import java.net.Socket;
 import java.sql.SQLException;
+import java.util.Arrays;
 
 /**
  * Ресивер(получатель), отправляет серилизованные объекты на сервер.
@@ -74,6 +75,7 @@ public class CommandReceiver {
                 collectionManager.add(studyGroup);
                 out.writeObject(new SerializedMessage("Элемент добавлен в коллекцию."));
             } catch (Exception e){
+                e.printStackTrace();
                 out.writeObject(new SerializedMessage("Полученный элемент не добавлен: " + e));
             }
 
