@@ -6,23 +6,19 @@ import Interfaces.Validator;
 import java.util.Arrays;
 
 public class ValidatorImp implements Validator {
-    @Override
-    public boolean checkExistColor(String toContains) {
+    private boolean checkExistColor(String toContains) {
         return Arrays.stream(Color.values()).anyMatch((color) -> color.name().equals(toContains));
     }
 
-    @Override
-    public boolean checkExistCountry(String toContains) {
+    private boolean checkExistCountry(String toContains) {
         return Arrays.stream(Country.values()).anyMatch((country) -> country.name().equals(toContains));
     }
 
-    @Override
-    public boolean checkExistFormOfEducation(String toContains) {
+    private boolean checkExistFormOfEducation(String toContains) {
         return Arrays.stream(FormOfEducation.values()).anyMatch((formOfEducation) -> formOfEducation.name().equals(toContains));
     }
 
-    @Override
-    public boolean checkExistSemester(String toContains) {
+    private boolean checkExistSemester(String toContains) {
         return Arrays.stream(Semester.values()).anyMatch((semester) -> semester.name().equals(toContains));
     }
 
