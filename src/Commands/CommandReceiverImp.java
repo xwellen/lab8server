@@ -18,15 +18,15 @@ import java.util.List;
  * Ресивер(получатель), отправляет серилизованные объекты на сервер.
  */
 @Singleton
-public class CommandReceiver {
-    private static final Logger logger = LoggerFactory.getLogger(CommandReceiver.class);
+public class CommandReceiverImp implements CommandReceiver {
+    private static final Logger logger = LoggerFactory.getLogger(CommandReceiverImp.class);
     private final CollectionManager collectionManager;
     private final CollectionUtils collectionUtils;
     private final DatabaseManager databaseManager;
     private final Validator validator;
 
     @Inject
-    public CommandReceiver(CollectionManager collectionManager, CollectionUtils collectionUtils, DatabaseManager databaseManager, Validator validator) {
+    public CommandReceiverImp(CollectionManager collectionManager, CollectionUtils collectionUtils, DatabaseManager databaseManager, Validator validator) {
         this.collectionManager = collectionManager;
         this.collectionUtils = collectionUtils;
         this.databaseManager = databaseManager;
@@ -159,6 +159,7 @@ public class CommandReceiver {
         }
     }
 
+    @Override
     public void removeGreater(SerializedObjectCommand command, Socket socket) throws IOException, DatabaseException {
         if (checkUser(command.getLogin(), command.getPassword(), socket)) {
             ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
@@ -230,6 +231,7 @@ public class CommandReceiver {
         }
     }
 
+    @Override
     public  void maxByGroupAdmin(SerializedCommand command, Socket socket) throws IOException, DatabaseException {
         if (checkUser(command.getLogin(), command.getPassword(), socket)) {
             ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());

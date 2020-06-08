@@ -1,24 +1,29 @@
 package Utils.CommandHandler;
 
 import Commands.Command;
-import Commands.SerializedCommands.SerializedCommand;
+import Commands.SerializedCommand;
 import Exceptions.DatabaseException;
+import Interfaces.CommandReceiver;
+import Interfaces.Decrypting;
+import com.google.inject.Inject;
 
 import java.io.IOException;
 import java.net.Socket;
 
-public class Decrypting {
-    private final Socket socket;
+public class DecryptingImp implements Decrypting {
+    private final CommandReceiver commandReceiver;
 
-    public Decrypting(Socket socket) {
-        this.socket = socket;
+    @Inject
+    public DecryptingImp(CommandReceiver commandReceiver) {
+        this.commandReceiver = commandReceiver;
     }
 
-    public void decrypt(Object o) throws IOException, InterruptedException, ClassNotFoundException, DatabaseException {
+    @Override
+    public void decrypt(Object o, Socket socket) throws IOException, InterruptedException, ClassNotFoundException, DatabaseException {
         if (o instanceof SerializedCommand) {
             SerializedCommand serializedCommand = (SerializedCommand) o;
             Command command = serializedCommand.getCommand();
-            command.execute(serializedCommand, socket);
+            command.execute(serializedCommand, socket, commandReceiver);
         }
     }
 }

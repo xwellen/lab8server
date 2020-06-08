@@ -1,27 +1,33 @@
 package Utils;
 
 import BasicClasses.*;
+import Interfaces.Validator;
 
 import java.util.Arrays;
 
-public class Validator {
-    private static boolean checkExistColor(String toContains) {
+public class ValidatorImp implements Validator {
+    @Override
+    public boolean checkExistColor(String toContains) {
         return Arrays.stream(Color.values()).anyMatch((color) -> color.name().equals(toContains));
     }
 
-    private static boolean checkExistCountry(String toContains) {
+    @Override
+    public boolean checkExistCountry(String toContains) {
         return Arrays.stream(Country.values()).anyMatch((country) -> country.name().equals(toContains));
     }
 
-    private static boolean checkExistFormOfEducation(String toContains) {
+    @Override
+    public boolean checkExistFormOfEducation(String toContains) {
         return Arrays.stream(FormOfEducation.values()).anyMatch((formOfEducation) -> formOfEducation.name().equals(toContains));
     }
 
-    private static boolean checkExistSemester(String toContains) {
+    @Override
+    public boolean checkExistSemester(String toContains) {
         return Arrays.stream(Semester.values()).anyMatch((semester) -> semester.name().equals(toContains));
     }
 
-    public static boolean validateStudyGroup(StudyGroup studyGroup) {
+    @Override
+    public boolean validateStudyGroup(StudyGroup studyGroup) {
         return studyGroup.getId() != null &&
             ( studyGroup.getName() != null && !studyGroup.getName().equals("")) &&
             studyGroup.getCoordinates().getX() <= 531 &&
@@ -32,7 +38,8 @@ public class Validator {
             validatePerson(studyGroup.getGroupAdmin());
     }
 
-    public static boolean validatePerson(Person person) {
+    @Override
+    public boolean validatePerson(Person person) {
         return (person != null && person.getName() != null && !person.getName().equals("")) &&
                 person.getHeight() > 0 &&
                 checkExistColor(person.getEyeColor().toString()) &&

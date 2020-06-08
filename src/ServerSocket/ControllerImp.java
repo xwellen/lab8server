@@ -1,35 +1,47 @@
 package ServerSocket;
 
-import Collection.CollectionManager;
 import Exceptions.DatabaseException;
-import Utils.CommandHandler.Decrypting;
+import Interfaces.CollectionManager;
+import Interfaces.Controller;
+import Interfaces.DatabaseManager;
 
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
 
-import Utils.Database.DatabaseManagerImpl;
+import Interfaces.Decrypting;
+import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @Singleton
-public class Controller {
-    private static Socket clientSocket; //сокет для общения
-    private static ServerSocket server; // серверсокет
-    private static ObjectInputStream in; // поток чтения из сокета
-    private static final Logger logger = LoggerFactory.getLogger(Controller.class);
+public class ControllerImp implements Controller {
+    private Socket clientSocket; //сокет для общения
+    private ServerSocket server; // серверсокет
+    private ObjectInputStream in; // поток чтения из сокета
+    private final CollectionManager collectionManager;
+    private final DatabaseManager databaseManager;
+    private final Decrypting decrypting;
+    private final Logger logger = LoggerFactory.getLogger(ControllerImp.class);
 
-    public void run(String strPort) throws IOException {
+    @Inject
+    public ControllerImp(CollectionManager collectionManager, DatabaseManager databaseManager, Decrypting decrypt) {
+        this.collectionManager = collectionManager;
+        this.databaseManager = databaseManager;
+        this.decrypting = decrypt;
+    }
+
+    @Override
+    public void run(String strPort){
         try {
             try {
                 int port = 0;
-                CollectionManager collectionManager = CollectionManager.getCollectionManager();
                 collectionManager.initList();
                 logger.info("Создана пустая коллекция");
                 try {
-                    new DatabaseManagerImpl().loadCollectionFromDatabase(collectionManager);
+                    databaseManager.loadCollectionFromDatabase(collectionManager);
                 } catch (DatabaseException e) {
                     logger.error("Ошибка при выгрузке коллекции: " + e);
                 }
@@ -48,9 +60,8 @@ public class Controller {
                     try {
                         while (true) {
                             in = new ObjectInputStream(clientSocket.getInputStream());
-                            Decrypting decrypting = new Decrypting(clientSocket);
                             Object o = in.readObject();
-                            decrypting.decrypt(o);
+                            decrypting.decrypt(o, clientSocket);
                         }
 
                     } catch (EOFException | SocketException ex) {

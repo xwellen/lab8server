@@ -10,23 +10,25 @@ import java.util.List;
 import BasicClasses.*;
 import Exceptions.DatabaseException;
 
-import Interfaces.CollectionManager;
-import Interfaces.SqlConsumer;
-import Interfaces.SqlFunction;
+import Interfaces.*;
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import org.apache.ibatis.jdbc.ScriptRunner;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import Commands.Utils.HashEncrypter;
-
-public class DatabaseManagerImpl {
+@Singleton
+public class DatabaseManagerImp implements DatabaseManager {
     private final String url = "jdbc:postgresql://localhost:5432/ITMO";
     private final String user = "postgres";
     private final String password = "sasha";
     private final String salty = "Pozhalyista_Postavte_10_ballov";
-    private static final Logger logger = LoggerFactory.getLogger(DatabaseManagerImpl.class);
+    private static final Logger logger = LoggerFactory.getLogger(DatabaseManagerImp.class);
+    private final HashEncrypter hashEncrypter;
 
-    public DatabaseManagerImpl() {
+    @Inject
+    public DatabaseManagerImp(HashEncrypter hashEncrypter) {
+        this.hashEncrypter = hashEncrypter;
         try {
             Class.forName("org.postgresql.Driver");
             logger.info("Драйвер подключён");
@@ -38,7 +40,8 @@ public class DatabaseManagerImpl {
 //        buildTables();
     }
 
-    private void buildTables(){
+    @Override
+    public void buildTables(){
         try {
             Connection connection = DriverManager.getConnection(url, user, password);
             ScriptRunner sr = new ScriptRunner(connection);
@@ -70,6 +73,7 @@ public class DatabaseManagerImpl {
      * @return назначенный базой данных id для этого элемента
      * @throws DatabaseException если что-то пошло не так при работе с базой данных
      */
+    @Override
     public Integer addElement(StudyGroup studyGroup, String username) throws DatabaseException {
         return this.<Integer>handleQuery((Connection connection) -> {
 
@@ -124,7 +128,8 @@ public class DatabaseManagerImpl {
      * @param queryBody тело запроса (Consumer)
      * @throws DatabaseException если что-то пошло не так при работе с базой данных
      */
-    private void handleQuery(SqlConsumer<Connection> queryBody) throws DatabaseException {
+    @Override
+    public void handleQuery(SqlConsumer<Connection> queryBody) throws DatabaseException {
         try (Connection connection = DriverManager.getConnection(url, user, password)) {
             queryBody.accept(connection);
         } catch (SQLException e) {
@@ -140,7 +145,8 @@ public class DatabaseManagerImpl {
      * @return запрошенное у базы данных значение
      * @throws DatabaseException если что-то пошло не так при работе с базой данных
      */
-    private <T> T handleQuery(SqlFunction<Connection, T> queryBody) throws DatabaseException {
+    @Override
+    public <T> T handleQuery(SqlFunction<Connection, T> queryBody) throws DatabaseException {
         try (Connection connection = DriverManager.getConnection(url, user, password)) {
             return queryBody.apply(connection);
         } catch (SQLException e) {
@@ -156,6 +162,7 @@ public class DatabaseManagerImpl {
      * @return true, если успешно; false, если нет
      * @throws DatabaseException если что-то пошло не так при работе с базой данных
      */
+    @Override
     public boolean removeById(int id, String username) throws DatabaseException {
         return handleQuery((Connection connection) -> {
             String query =
@@ -181,6 +188,7 @@ public class DatabaseManagerImpl {
      * @return true, если успешно; false, если нет
      * @throws DatabaseException если что-то пошло не так при работе с базой данных
      */
+    @Override
     public boolean updateById(StudyGroup studyGroup, int id, String username) throws DatabaseException {
         return handleQuery((Connection connection) -> {
             connection.createStatement().execute("BEGIN TRANSACTION;");
@@ -240,6 +248,7 @@ public class DatabaseManagerImpl {
      * @param collectionManager куда загрузить коллекцию
      * @throws DatabaseException если что-то пошло не так при работе с базой данных
      */
+    @Override
     public void loadCollectionFromDatabase(CollectionManager collectionManager) throws DatabaseException {
         handleQuery((connection -> {
             collectionManager.initList();
@@ -285,6 +294,7 @@ public class DatabaseManagerImpl {
      * @return пароль (хешированный)
      * @throws DatabaseException если что-то пошло не так при работе с базой данных
      */
+    @Override
     public String getPassword(String username) throws DatabaseException {
         return this.handleQuery((Connection connection) -> {
             String query = "SELECT (\"password\")" +
@@ -309,6 +319,7 @@ public class DatabaseManagerImpl {
      * @return true, если существует; false, если нет
      * @throws DatabaseException если что-то пошло не так при работе с базой данных
      */
+    @Override
     public boolean doesUserExist(String username) throws DatabaseException {
         return this.<Boolean>handleQuery((Connection connection) -> {
             String query = "SELECT COUNT(*)" +
@@ -331,13 +342,14 @@ public class DatabaseManagerImpl {
      * @param password пароль (хешированный)
      * @throws DatabaseException если что-то пошло не так при работе с базой данных
      */
+    @Override
     public void addUser(String username, String password) throws DatabaseException {
         handleQuery((Connection connection) -> {
             String query = "INSERT INTO \"user\" (\"login\", \"password\")" +
                     "VALUES (?, ?)";
             PreparedStatement statement = connection.prepareStatement(query);
             statement.setString(1, username);
-            statement.setString(2, HashEncrypter.encryptString(password + salty));
+            statement.setString(2, hashEncrypter.encryptString(password + salty));
 
             statement.executeUpdate();
         });
@@ -350,6 +362,7 @@ public class DatabaseManagerImpl {
      * @return список id элементов, которые были удалены
      * @throws DatabaseException если что-то пошло не так при работе с базой данных
      */
+    @Override
     public List<Integer> clear(String username) throws DatabaseException {
         return handleQuery((Connection connection) -> {
             String query = "DELETE FROM person" +
@@ -375,6 +388,7 @@ public class DatabaseManagerImpl {
      * @return список id элементов, которые создал пользователь
      * @throws DatabaseException если что-то пошло не так при работе с базой данных
      */
+    @Override
     public List<Integer> getIdOfUserElements(String username) throws DatabaseException {
         return handleQuery((Connection connection) -> {
             String query = "SELECT studyGroup_id FROM studyGroup, \"user\"" +
@@ -393,9 +407,10 @@ public class DatabaseManagerImpl {
         });
     }
 
+    @Override
     public boolean validateUserData(String login, String password) throws DatabaseException {
         String realPassword = getPassword(login);
 
-        return HashEncrypter.encryptString(password + salty).equals(realPassword);
+        return hashEncrypter.encryptString(password + salty).equals(realPassword);
     }
 }

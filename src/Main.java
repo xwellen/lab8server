@@ -1,10 +1,13 @@
-import ServerSocket.Controller;
-import java.io.IOException;
+import Interfaces.Controller;
+import ServerSocket.ServerModule;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
 
 public class Main {
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) {
+        Injector injector = Guice.createInjector(new ServerModule());
+        Controller controller = injector.getInstance(Controller.class);
         try {
-            Controller controller = new Controller();
             controller.run(args[0]);
         } catch (ArrayIndexOutOfBoundsException ex) {
             System.out.println("Введено некорректное количество аргументов.\n" +

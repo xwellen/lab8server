@@ -1,6 +1,12 @@
+package ServerSocket;
+
 import Collection.CollectionManagerImp;
 import Collection.CollectionUtilsImp;
-import ServerSocket.ControllerImp;
+import Commands.CommandReceiverImp;
+import Utils.CommandHandler.DecryptingImp;
+import Utils.Database.DatabaseManagerImp;
+import Utils.HashEncrypterImp;
+import Utils.ValidatorImp;
 import com.google.inject.AbstractModule;
 import Interfaces.*;
 
@@ -13,5 +19,10 @@ public class ServerModule extends AbstractModule {
         bind(Controller.class).to(ControllerImp.class);
         bind(CollectionManager.class).to(CollectionManagerImp.class);
         bind(CollectionUtils.class).to(CollectionUtilsImp.class);
+        bind(DatabaseManager.class).to(DatabaseManagerImp.class);
+        bind(Validator.class).to(ValidatorImp.class);
+        bind(HashEncrypter.class).to(HashEncrypterImp.class);
+        bind(CommandReceiver.class).to(CommandReceiverImp.class);
+        bind(Decrypting.class).to(DecryptingImp.class);
     }
 }
