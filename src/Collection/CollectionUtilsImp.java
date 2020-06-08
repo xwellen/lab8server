@@ -1,13 +1,21 @@
 package Collection;
 
 import BasicClasses.StudyGroup;
+import Interfaces.CollectionManager;
+import com.google.inject.Inject;
 
 /**
  * Класс, содержащий утилиты для работы с коллекцией.
  */
 public class CollectionUtils {
-    public static boolean checkExist(Integer ID) {
-        CollectionManager collectionManager = CollectionManager.getCollectionManager();
+    private final CollectionManager collectionManager;
+
+    @Inject
+    public CollectionUtils(CollectionManager collectionManager) {
+        this.collectionManager = collectionManager;
+    }
+
+    public boolean checkExist(Integer ID) {
         for (StudyGroup studyGroup:collectionManager.getLinkedList()) {
             if (studyGroup.getId().equals(ID)) {
                 return true;
@@ -16,7 +24,7 @@ public class CollectionUtils {
         return false;
     }
 
-    static String display(StudyGroup studyGroup) {
+    String display(StudyGroup studyGroup) {
         String info = "";
         info = String.format("ID элемента коллекции – %s\n" +
                 "Название группы – %s\n" +

@@ -8,9 +8,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import BasicClasses.*;
-import Collection.CollectionManager;
 import Exceptions.DatabaseException;
 
+import Interfaces.CollectionManager;
 import Interfaces.SqlConsumer;
 import Interfaces.SqlFunction;
 import org.apache.ibatis.jdbc.ScriptRunner;

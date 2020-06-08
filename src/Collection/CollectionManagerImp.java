@@ -1,6 +1,7 @@
 package Collection;
 
 import BasicClasses.*;
+import com.google.inject.Singleton;
 
 import java.time.ZonedDateTime;
 import java.util.*;
@@ -9,20 +10,11 @@ import java.util.stream.Collectors;
 /**
  * Менеджер коллекцией. Описывает логику команд, выполняющих работу с коллекцией.
  */
+@Singleton
 public class CollectionManager {
     private LinkedList<StudyGroup> linkedList;
     private ZonedDateTime creationDate;
     private List res = new ArrayList();
-    private static CollectionManager collectionManager;
-
-    private CollectionManager() {}
-
-    public static CollectionManager getCollectionManager() {
-        if (collectionManager == null){
-            collectionManager = new CollectionManager();
-        }
-        return collectionManager;
-    }
 
     public void initList() {
         if (linkedList == null) {

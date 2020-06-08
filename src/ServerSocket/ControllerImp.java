@@ -10,9 +10,11 @@ import java.net.Socket;
 import java.net.SocketException;
 
 import Utils.Database.DatabaseManagerImpl;
+import com.google.inject.Singleton;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+@Singleton
 public class Controller {
     private static Socket clientSocket; //сокет для общения
     private static ServerSocket server; // серверсокет

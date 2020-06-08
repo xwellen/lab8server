@@ -1,7 +1,7 @@
 package Utils.CommandHandler;
 
 import Commands.Command;
-import Commands.SerializedCommand;
+import Commands.SerializedCommands.SerializedCommand;
 import Exceptions.DatabaseException;
 
 import java.io.IOException;

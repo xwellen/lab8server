@@ -2,39 +2,39 @@ package Commands;
 
 import BasicClasses.Person;
 import BasicClasses.StudyGroup;
-import Collection.CollectionManager;
-import Collection.CollectionUtils;
 import Commands.SerializedCommands.*;
 import Exceptions.DatabaseException;
-import Utils.Database.DatabaseManagerImpl;
-import Utils.Validator;
+import Interfaces.*;
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.net.Socket;
-import java.sql.SQLException;
-import java.util.Arrays;
 import java.util.List;
 
 /**
  * Ресивер(получатель), отправляет серилизованные объекты на сервер.
  */
+@Singleton
 public class CommandReceiver {
-    private final Socket socket;
     private static final Logger logger = LoggerFactory.getLogger(CommandReceiver.class);
-    private CollectionManager collectionManager = CollectionManager.getCollectionManager();
-    private DatabaseManagerImpl databaseManager = new DatabaseManagerImpl();
-    private final String login;
-    private final String password;
+    private final CollectionManager collectionManager;
+    private final CollectionUtils collectionUtils;
+    private final DatabaseManager databaseManager;
+    private final Validator validator;
 
-    public CommandReceiver(Socket socket, String login, String password) {
-        this.socket = socket;
-        this.login = login;
-        this.password = password;
+    @Inject
+    public CommandReceiver(CollectionManager collectionManager, CollectionUtils collectionUtils, DatabaseManager databaseManager, Validator validator) {
+        this.collectionManager = collectionManager;
+        this.collectionUtils = collectionUtils;
+        this.databaseManager = databaseManager;
+        this.validator = validator;
     }
 
-    private boolean checkUser() throws DatabaseException, IOException {
+    @Override
+    public boolean checkUser(String login, String password, Socket socket) throws DatabaseException, IOException {
         boolean exist = databaseManager.validateUserData(login, password);
 
         if (exist) {
@@ -49,8 +49,9 @@ public class CommandReceiver {
         return false;
     }
 
-    public void info() throws IOException, DatabaseException {
-        if (checkUser()) {
+    @Override
+    public void info(SerializedCommand command, Socket socket) throws IOException, DatabaseException {
+        if (checkUser(command.getLogin(), command.getPassword(), socket)) {
             ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
 
             out.writeObject(new SerializedMessage(collectionManager.getInfo()));
@@ -58,8 +59,9 @@ public class CommandReceiver {
         }
     }
 
-    public void show() throws IOException, DatabaseException {
-        if (checkUser()) {
+    @Override
+    public void show(SerializedCommand command, Socket socket) throws IOException, DatabaseException {
+        if (checkUser(command.getLogin(), command.getPassword(), socket)) {
             ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
 
             out.writeObject(new SerializedMessage(collectionManager.show()));
@@ -67,12 +69,13 @@ public class CommandReceiver {
         }
     }
 
-    public void add(Object o) throws IOException, DatabaseException {
-        if (checkUser()) {
+    @Override
+    public void add(SerializedObjectCommand command, Socket socket) throws IOException, DatabaseException {
+        if (checkUser(command.getLogin(), command.getPassword(), socket)) {
             ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
             try {
-                StudyGroup studyGroup = (StudyGroup) o;
-                studyGroup.setId(databaseManager.addElement(studyGroup, login));
+                StudyGroup studyGroup = (StudyGroup) command.getObject();
+                studyGroup.setId(databaseManager.addElement(studyGroup, command.getLogin()));
                 collectionManager.add(studyGroup);
                 out.writeObject(new SerializedMessage("Элемент добавлен в коллекцию."));
             } catch (Exception e){
@@ -84,19 +87,17 @@ public class CommandReceiver {
         }
     }
 
-    /**
-     *
-     * @param ID - апдейт элемента по ID.
-     */
-    public void update(String ID, StudyGroup studyGroup) throws IOException, DatabaseException {
-        if (checkUser()) {
+    @Override
+    public void update(SerializedCombinedCommand command, Socket socket) throws IOException, DatabaseException {
+        if (checkUser(command.getLogin(), command.getPassword(), socket)) {
             Integer groupId;
             ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
             try {
-                groupId = Integer.parseInt(ID);
-                if (CollectionUtils.checkExist(groupId)) {
+                groupId = Integer.parseInt(command.getArg());
+                if (collectionUtils.checkExist(groupId)) {
                     try {
-                        databaseManager.updateById(studyGroup, groupId, login);
+                        StudyGroup studyGroup = (StudyGroup) command.getObject();
+                        databaseManager.updateById(studyGroup, groupId, command.getLogin());
                         collectionManager.update(studyGroup, groupId);
                         out.writeObject(new SerializedMessage("Команда update выполнена."));
                     } catch (Exception e){
@@ -114,18 +115,15 @@ public class CommandReceiver {
         }
     }
 
-    /**
-     *
-     * @param ID - удаление по ID.
-     */
-    public void removeById(String ID) throws IOException, DatabaseException {
-        if (checkUser()) {
+    @Override
+    public void removeById(SerializedArgumentCommand command, Socket socket) throws IOException, DatabaseException {
+        if (checkUser(command.getLogin(), command.getPassword(), socket)) {
             Integer groupId;
             ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
             try {
-                groupId = Integer.parseInt(ID);
-                if (CollectionUtils.checkExist(groupId)) {
-                    databaseManager.removeById(groupId, login);
+                groupId = Integer.parseInt(command.getArg());
+                if (collectionUtils.checkExist(groupId)) {
+                    databaseManager.removeById(groupId, command.getLogin());
                     collectionManager.removeById(groupId);
                     out.writeObject(new SerializedMessage("Элемент с ID " + groupId + " успешно удален из коллекции."));
                 } else {
@@ -139,10 +137,11 @@ public class CommandReceiver {
         }
     }
 
-    public void clear() throws IOException, DatabaseException {
-        if (checkUser()) {
-            List<Integer> deleteID = databaseManager.clear(login);
-            deleteID.forEach(id -> collectionManager.removeById(id));
+    @Override
+    public void clear(SerializedCommand command, Socket socket) throws IOException, DatabaseException {
+        if (checkUser(command.getLogin(), command.getPassword(), socket)) {
+            List<Integer> deleteID = databaseManager.clear(command.getLogin());
+            deleteID.forEach(collectionManager::removeById);
             ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
 
             out.writeObject(new SerializedMessage("Ваши элементы колекции удалены."));
@@ -150,8 +149,9 @@ public class CommandReceiver {
         }
     }
 
-    public void head() throws IOException, DatabaseException {
-        if (checkUser()) {
+    @Override
+    public void head(SerializedCommand command, Socket socket) throws IOException, DatabaseException {
+        if (checkUser(command.getLogin(), command.getPassword(), socket)) {
             ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
 
             out.writeObject(new SerializedMessage(collectionManager.head()));
@@ -159,19 +159,20 @@ public class CommandReceiver {
         }
     }
 
-    public void removeGreater(StudyGroup studyGroup) throws IOException, DatabaseException {
-        if (checkUser()) {
+    public void removeGreater(SerializedObjectCommand command, Socket socket) throws IOException, DatabaseException {
+        if (checkUser(command.getLogin(), command.getPassword(), socket)) {
             ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
 
-            if (Validator.validateStudyGroup(studyGroup)) {
-                List<Integer> ids = collectionManager.removeGreater(studyGroup, databaseManager.getIdOfUserElements(login));
+            StudyGroup studyGroup = (StudyGroup) command.getObject();
+            if (validator.validateStudyGroup(studyGroup)) {
+                List<Integer> ids = collectionManager.removeGreater(studyGroup, databaseManager.getIdOfUserElements(command.getLogin()));
                 if (ids.isEmpty()) out.writeObject(new SerializedMessage("Таких элементов не найдено"));
                 else out.writeObject(new SerializedMessage("Из коллекции удалены элементы с ID: " +
                         ids.toString().replaceAll("[\\[\\]]", "")));
 
                 ids.forEach(id -> {
                     try {
-                        databaseManager.removeById(id, login);
+                        databaseManager.removeById(id, command.getLogin());
                     } catch (DatabaseException e) {
                         try {
                             out.writeObject(new SerializedMessage("Ошибка при удалении из бд элемента с id="+ id + "\n" + e));
@@ -188,19 +189,21 @@ public class CommandReceiver {
         }
     }
 
-    public void removeLower(StudyGroup studyGroup) throws IOException, DatabaseException {
-        if (checkUser()) {
+    @Override
+    public void removeLower(SerializedObjectCommand command, Socket socket) throws IOException, DatabaseException {
+        if (checkUser(command.getLogin(), command.getPassword(), socket)) {
             ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
 
-            if (Validator.validateStudyGroup(studyGroup)) {
-                List<Integer> ids = collectionManager.removeLower(studyGroup, databaseManager.getIdOfUserElements(login));
+            StudyGroup studyGroup = (StudyGroup) command.getObject();
+            if (validator.validateStudyGroup(studyGroup)) {
+                List<Integer> ids = collectionManager.removeLower(studyGroup, databaseManager.getIdOfUserElements(command.getLogin()));
                 if (ids.isEmpty()) out.writeObject(new SerializedMessage("Таких элементов не найдено"));
                 else out.writeObject(new SerializedMessage("Из коллекции удалены элементы с ID: " +
                         ids.toString().replaceAll("[\\[\\]]", "")));
 
                 ids.forEach(id -> {
                     try {
-                        databaseManager.removeById(id, login);
+                        databaseManager.removeById(id, command.getLogin());
                     } catch (DatabaseException e) {
                         try {
                             out.writeObject(new SerializedMessage("Ошибка при удалении из бд элемента с id="+ id + "\n" + e));
@@ -217,8 +220,9 @@ public class CommandReceiver {
         }
     }
 
-    public void minBySemesterEnum() throws IOException, DatabaseException {
-        if (checkUser()) {
+    @Override
+    public void minBySemesterEnum(SerializedCommand command, Socket socket) throws IOException, DatabaseException {
+        if (checkUser(command.getLogin(), command.getPassword(), socket)) {
             ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
 
             out.writeObject(new SerializedMessage(collectionManager.minBySemesterEnum()));
@@ -226,8 +230,8 @@ public class CommandReceiver {
         }
     }
 
-    public  void maxByGroupAdmin() throws IOException, DatabaseException {
-        if (checkUser()) {
+    public  void maxByGroupAdmin(SerializedCommand command, Socket socket) throws IOException, DatabaseException {
+        if (checkUser(command.getLogin(), command.getPassword(), socket)) {
             ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
 
             out.writeObject(new SerializedMessage(collectionManager.maxByGroupAdmin()));
@@ -235,11 +239,13 @@ public class CommandReceiver {
         }
     }
 
-    public void countByGroupAdmin(Person groupAdmin) throws IOException, DatabaseException {
-        if (checkUser()) {
+    @Override
+    public void countByGroupAdmin(SerializedObjectCommand command, Socket socket) throws IOException, DatabaseException {
+        if (checkUser(command.getLogin(), command.getPassword(), socket)) {
             ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
 
-            if (Validator.validatePerson(groupAdmin)) {
+            Person groupAdmin = (Person) command.getObject();
+            if (validator.validatePerson(groupAdmin)) {
                 out.writeObject(new SerializedMessage(collectionManager.countByGroupAdmin(groupAdmin)));
             } else {
                 out.writeObject(new SerializedMessage("Полученный элемент не прошел валидацию на стороне сервера."));
@@ -249,13 +255,14 @@ public class CommandReceiver {
         }
     }
 
-    public void register(String login, String password) throws IOException, InterruptedException, ClassNotFoundException, DatabaseException {
+    @Override
+    public void register(SerializedCommand command, Socket socket) throws IOException, DatabaseException {
         ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
 
-        if (!databaseManager.doesUserExist(login)) {
-            databaseManager.addUser(login, password);
-            out.writeObject(new SerializedMessage("Пользователь с логином " + login + " успешно создан!"));
-            logger.info(String.format("Пользователь %s успешно зарегистрирован!", login));
+        if (!databaseManager.doesUserExist(command.getLogin())) {
+            databaseManager.addUser(command.getLogin(), command.getPassword());
+            out.writeObject(new SerializedMessage("Пользователь с логином " + command.getLogin() + " успешно создан!"));
+            logger.info(String.format("Пользователь %s успешно зарегистрирован!", command.getLogin()));
         } else { out.writeObject(new SerializedMessage("Пользователь с таким логином уже существует!")); }
         logger.info(String.format("Клиенту %s:%s отправлен результат попытки регистрации", socket.getInetAddress(), socket.getPort()));
     }
