@@ -3,13 +3,13 @@ package Interfaces;
 import BasicClasses.Person;
 import BasicClasses.StudyGroup;
 
-import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 public interface CollectionManager {
     void initList();
 
-    LinkedList<StudyGroup> getLinkedList();
+    ConcurrentLinkedQueue<StudyGroup> getLinkedList();
 
     void add(StudyGroup studyGroup);
 

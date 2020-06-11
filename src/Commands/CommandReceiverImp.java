@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
 import java.io.*;
 import java.net.Socket;
 import java.util.List;
+import java.util.concurrent.ForkJoinPool;
 
 /**
  * Ресивер(получатель), отправляет серилизованные объекты на сервер.
@@ -24,6 +25,7 @@ public class CommandReceiverImp implements CommandReceiver {
     private final CollectionUtils collectionUtils;
     private final DatabaseManager databaseManager;
     private final Validator validator;
+    public final static ForkJoinPool forkJoinPool = new ForkJoinPool(2);
 
     @Inject
     public CommandReceiverImp(CollectionManager collectionManager, CollectionUtils collectionUtils, DatabaseManager databaseManager, Validator validator) {

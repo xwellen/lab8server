@@ -57,28 +57,34 @@ public class ControllerImp implements Controller {
                 while (true) {
                     clientSocket = server.accept();
                     logger.info("А я все думал, когда же ты появишься: " + clientSocket);
-                    try {
-                        while (true) {
-                            in = new ObjectInputStream(clientSocket.getInputStream());
-                            Object o = in.readObject();
-                            decrypting.decrypt(o, clientSocket);
-                        }
+                    new Thread(() -> {
+                        try {
+                            try {
+                                while (true) {
+                                    in = new ObjectInputStream(clientSocket.getInputStream());
+                                    Object o = in.readObject();
+                                    decrypting.decrypt(o, clientSocket);
+                                }
 
-                    } catch (EOFException | SocketException ex) {
-                        logger.info("Клиент " + clientSocket + " того, откинулся...");
-                    } catch (InterruptedException | DatabaseException e) {
-                        e.printStackTrace();
-                    } finally {
-                        clientSocket.close();
-                        if (in != null) { in.close(); }
-                    }
+                            } catch (EOFException | SocketException ex) {
+                                logger.info("Клиент " + clientSocket + " того, откинулся...");
+                            } catch (InterruptedException | DatabaseException e) {
+                                e.printStackTrace();
+                            } finally {
+                                clientSocket.close();
+                                if (in != null) { in.close(); }
+                            }
+                        } catch (IOException | ClassNotFoundException ex) {
+                            ex.printStackTrace();
+                        }
+                    }).start();
                 }
             } finally {
                 if (clientSocket != null) { clientSocket.close(); }
                 logger.info("Сервер закрыт!");
                 server.close();
             }
-        } catch (IOException | ClassNotFoundException | NullPointerException e) {
+        } catch (IOException | NullPointerException e) {
             e.printStackTrace();
             logger.error(String.valueOf(e));
         }

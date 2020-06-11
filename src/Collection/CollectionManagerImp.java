@@ -8,6 +8,7 @@ import com.google.inject.Singleton;
 
 import java.time.ZonedDateTime;
 import java.util.*;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.stream.Collectors;
 
 /**
@@ -15,7 +16,7 @@ import java.util.stream.Collectors;
  */
 @Singleton
 public class CollectionManagerImp implements CollectionManager {
-    private LinkedList<StudyGroup> linkedList;
+    private ConcurrentLinkedQueue<StudyGroup> linkedList;
     private ZonedDateTime creationDate;
     private List res = new ArrayList();
     private final CollectionUtils collectionUtils;
@@ -28,14 +29,14 @@ public class CollectionManagerImp implements CollectionManager {
     @Override
     public void initList() {
         if (linkedList == null) {
-            linkedList = new LinkedList<>();
+            linkedList = new ConcurrentLinkedQueue<>();
             creationDate = ZonedDateTime.now();
         } else linkedList.clear();
 
     }
 
     @Override
-    public LinkedList<StudyGroup> getLinkedList() {
+    public ConcurrentLinkedQueue<StudyGroup> getLinkedList() {
         return linkedList;
     }
 
@@ -57,8 +58,6 @@ public class CollectionManagerImp implements CollectionManager {
 
     @Override
     public String show() {
-        linkedList.sort(Comparator.comparing(StudyGroup::getName));  // Сортировка коллекции по алфавиту.
-
         String info = linkedList
                 .stream()
                 .map(collectionUtils::display)
@@ -95,7 +94,7 @@ public class CollectionManagerImp implements CollectionManager {
 
     @Override
     public String head() {
-        if (linkedList.size() > 0) { return collectionUtils.display(linkedList.getFirst()); }
+        if (linkedList.size() > 0) { return collectionUtils.display(linkedList.peek()); }
         else { return  "Коллекция пуста."; }
     }
 
