@@ -3,6 +3,7 @@ package Interfaces;
 import Commands.SerializedCommand;
 import Commands.SerializedCommands.SerializedArgumentCommand;
 import Commands.SerializedCommands.SerializedCombinedCommand;
+import Commands.SerializedCommands.SerializedMessage;
 import Commands.SerializedCommands.SerializedObjectCommand;
 import Exceptions.DatabaseException;
 
@@ -11,6 +12,8 @@ import java.net.Socket;
 
 public interface CommandReceiver {
     boolean checkUser(String login, String password, Socket socket) throws DatabaseException, IOException;
+
+    void sendObject(Socket socket, SerializedMessage serializedMessage) throws IOException, DatabaseException;
 
     void info(SerializedCommand command, Socket socket) throws IOException, DatabaseException;
 
@@ -37,4 +40,6 @@ public interface CommandReceiver {
     void countByGroupAdmin(SerializedObjectCommand command, Socket socket) throws IOException, DatabaseException;
 
     void register(SerializedCommand command, Socket socket) throws IOException, DatabaseException;
+
+
 }

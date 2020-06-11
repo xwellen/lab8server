@@ -18,9 +18,7 @@ import org.slf4j.LoggerFactory;
 
 @Singleton
 public class ControllerImp implements Controller {
-    private Socket clientSocket; //сокет для общения
     private ServerSocket server; // серверсокет
-    private ObjectInputStream in; // поток чтения из сокета
     private final CollectionManager collectionManager;
     private final DatabaseManager databaseManager;
     private final Decrypting decrypting;
@@ -55,9 +53,10 @@ public class ControllerImp implements Controller {
                 server = new ServerSocket(port);
                 logger.info("Сервер запущен!");
                 while (true) {
-                    clientSocket = server.accept();
+                    Socket clientSocket = server.accept();
                     logger.info("А я все думал, когда же ты появишься: " + clientSocket);
                     new Thread(() -> {
+                        ObjectInputStream in = null;
                         try {
                             try {
                                 while (true) {
@@ -68,9 +67,11 @@ public class ControllerImp implements Controller {
 
                             } catch (EOFException | SocketException ex) {
                                 logger.info("Клиент " + clientSocket + " того, откинулся...");
+                                Thread.currentThread().interrupt();
                             } catch (InterruptedException | DatabaseException e) {
                                 e.printStackTrace();
                             } finally {
+                                Thread.currentThread().interrupt();
                                 clientSocket.close();
                                 if (in != null) { in.close(); }
                             }
@@ -80,7 +81,6 @@ public class ControllerImp implements Controller {
                     }).start();
                 }
             } finally {
-                if (clientSocket != null) { clientSocket.close(); }
                 logger.info("Сервер закрыт!");
                 server.close();
             }
