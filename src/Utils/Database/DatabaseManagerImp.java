@@ -37,7 +37,7 @@ public class DatabaseManagerImp implements DatabaseManager {
             e.printStackTrace();
             System.exit(1);
         }
-//        buildTables();
+        //buildTables();
     }
 
     @Override
@@ -46,7 +46,7 @@ public class DatabaseManagerImp implements DatabaseManager {
             Connection connection = DriverManager.getConnection(url, user, password);
             ScriptRunner sr = new ScriptRunner(connection);
             try {
-                Files.walk(Paths.get("src/Utils/Database/Sql"))
+                Files.walk(Paths.get("src/Utils/Database/SQL"))
                         .filter(Files::isRegularFile)
                         .forEach(path -> {
                             Reader reader = null;

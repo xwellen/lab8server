@@ -27,8 +27,8 @@ public class CommandReceiverImp implements CommandReceiver {
     private final CollectionUtils collectionUtils;
     private final DatabaseManager databaseManager;
     private final Validator validator;
-    public final static ForkJoinPool forkJoinPool = new ForkJoinPool(2);
-    ThreadPoolExecutor executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(5);
+    private final ForkJoinPool forkJoinPool = new ForkJoinPool(2);
+    private final ThreadPoolExecutor executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(5);
 
     @Inject
     public CommandReceiverImp(CollectionManager collectionManager, CollectionUtils collectionUtils, DatabaseManager databaseManager, Validator validator) {
@@ -55,7 +55,7 @@ public class CommandReceiverImp implements CommandReceiver {
         boolean exist = databaseManager.validateUserData(login, password);
 
         if (exist) {
-            logger.info(String.format("Пользователь %s:%s, живущий по адресу %s:%s - прошел проверку на реального ИТМОшника", login, password, socket.getInetAddress(), socket.getPort()));
+            logger.info(String.format("Пользователь %s, живущий по адресу %s:%s - прошел проверку на реального ИТМОшника", login, socket.getInetAddress(), socket.getPort()));
             return true;
         } else {
             sendObject(socket, new SerializedMessage("Дядя, ты не зарегистрирован в нашем гей-кружке, проваливай отсюда!"));
@@ -172,91 +172,120 @@ public class CommandReceiverImp implements CommandReceiver {
 
     @Override
     public void removeGreater(SerializedObjectCommand command, Socket socket) throws IOException, DatabaseException {
-        if (checkUser(command.getLogin(), command.getPassword(), socket)) {
+        forkJoinPool.submit(() -> {
+            try {
+                if (checkUser(command.getLogin(), command.getPassword(), socket)) {
+                    StudyGroup studyGroup = (StudyGroup) command.getObject();
+                    if (validator.validateStudyGroup(studyGroup)) {
+                        List<Integer> ids = collectionManager.removeGreater(studyGroup, databaseManager.getIdOfUserElements(command.getLogin()));
+                        if (ids.isEmpty()) sendObject(socket, new SerializedMessage("Таких элементов не найдено"));
+                        else sendObject(socket, new SerializedMessage("Из коллекции удалены элементы с ID: " +
+                                ids.toString().replaceAll("[\\[\\]]", "")));
 
-            StudyGroup studyGroup = (StudyGroup) command.getObject();
-            if (validator.validateStudyGroup(studyGroup)) {
-                List<Integer> ids = collectionManager.removeGreater(studyGroup, databaseManager.getIdOfUserElements(command.getLogin()));
-                if (ids.isEmpty()) sendObject(socket, new SerializedMessage("Таких элементов не найдено"));
-                else sendObject(socket, new SerializedMessage("Из коллекции удалены элементы с ID: " +
-                        ids.toString().replaceAll("[\\[\\]]", "")));
-
-                ids.forEach(id -> {
-                    try {
-                        databaseManager.removeById(id, command.getLogin());
-                    } catch (DatabaseException e) {
-                        try {
-                            sendObject(socket, new SerializedMessage("Ошибка при удалении из бд элемента с id="+ id + "\n" + e));
-                        } catch (IOException | DatabaseException ex) {
-                            ex.printStackTrace();
-                        }
+                        ids.forEach(id -> {
+                            try {
+                                databaseManager.removeById(id, command.getLogin());
+                            } catch (DatabaseException e) {
+                                try {
+                                    sendObject(socket, new SerializedMessage("Ошибка при удалении из бд элемента с id="+ id + "\n" + e));
+                                } catch (IOException | DatabaseException ex) {
+                                    ex.printStackTrace();
+                                }
+                            }
+                        });
+                    } else {
+                        sendObject(socket, new SerializedMessage("Полученный элемент не прошел валидацию на стороне сервера."));
                     }
-                });
-            } else {
-                sendObject(socket, new SerializedMessage("Полученный элемент не прошел валидацию на стороне сервера."));
-            }
 
-            logger.info(String.format("Клиенту %s:%s отправлен результат работы команды REMOVE_GREATER", socket.getInetAddress(), socket.getPort()));
-        }
+                    logger.info(String.format("Клиенту %s:%s отправлен результат работы команды REMOVE_GREATER", socket.getInetAddress(), socket.getPort()));
+                }
+            } catch (DatabaseException | IOException e) {
+                e.printStackTrace();
+            }
+        });
     }
 
     @Override
     public void removeLower(SerializedObjectCommand command, Socket socket) throws IOException, DatabaseException {
-        if (checkUser(command.getLogin(), command.getPassword(), socket)) {
-            StudyGroup studyGroup = (StudyGroup) command.getObject();
-            if (validator.validateStudyGroup(studyGroup)) {
-                List<Integer> ids = collectionManager.removeLower(studyGroup, databaseManager.getIdOfUserElements(command.getLogin()));
-                if (ids.isEmpty()) sendObject(socket, new SerializedMessage("Таких элементов не найдено"));
-                else sendObject(socket, new SerializedMessage("Из коллекции удалены элементы с ID: " +
-                        ids.toString().replaceAll("[\\[\\]]", "")));
+        forkJoinPool.submit(() -> {
+            try {
+                if (checkUser(command.getLogin(), command.getPassword(), socket)) {
+                    StudyGroup studyGroup = (StudyGroup) command.getObject();
+                    if (validator.validateStudyGroup(studyGroup)) {
+                        List<Integer> ids = collectionManager.removeLower(studyGroup, databaseManager.getIdOfUserElements(command.getLogin()));
+                        if (ids.isEmpty()) sendObject(socket, new SerializedMessage("Таких элементов не найдено"));
+                        else sendObject(socket, new SerializedMessage("Из коллекции удалены элементы с ID: " +
+                                ids.toString().replaceAll("[\\[\\]]", "")));
 
-                ids.forEach(id -> {
-                    try {
-                        databaseManager.removeById(id, command.getLogin());
-                    } catch (DatabaseException e) {
-                        try {
-                            sendObject(socket, new SerializedMessage("Ошибка при удалении из бд элемента с id="+ id + "\n" + e));
-                        } catch (IOException | DatabaseException ex) {
-                            ex.printStackTrace();
-                        }
+                        ids.forEach(id -> {
+                            try {
+                                databaseManager.removeById(id, command.getLogin());
+                            } catch (DatabaseException e) {
+                                try {
+                                    sendObject(socket, new SerializedMessage("Ошибка при удалении из бд элемента с id=" + id + "\n" + e));
+                                } catch (IOException | DatabaseException ex) {
+                                    ex.printStackTrace();
+                                }
+                            }
+                        });
+                    } else {
+                        sendObject(socket, new SerializedMessage("Полученный элемент не прошел валидацию на стороне сервера."));
                     }
-                });
-            } else {
-                sendObject(socket, new SerializedMessage("Полученный элемент не прошел валидацию на стороне сервера."));
-            }
 
-            logger.info(String.format("Клиенту %s:%s отправлен результат работы команды REMOVE_LOWER", socket.getInetAddress(), socket.getPort()));
-        }
+                    logger.info(String.format("Клиенту %s:%s отправлен результат работы команды REMOVE_LOWER", socket.getInetAddress(), socket.getPort()));
+                }
+            } catch (DatabaseException | IOException e) {
+                e.printStackTrace();
+            }
+        });
     }
 
     @Override
     public void minBySemesterEnum(SerializedCommand command, Socket socket) throws IOException, DatabaseException {
-        if (checkUser(command.getLogin(), command.getPassword(), socket)) {
-            sendObject(socket, new SerializedMessage(collectionManager.minBySemesterEnum()));
-            logger.info(String.format("Клиенту %s:%s отправлен результат работы команды MIN_BY_SEMESTER_ENUM", socket.getInetAddress(), socket.getPort()));
-        }
+        forkJoinPool.submit(() -> {
+            try {
+                if (checkUser(command.getLogin(), command.getPassword(), socket)) {
+                    sendObject(socket, new SerializedMessage(collectionManager.minBySemesterEnum()));
+                    logger.info(String.format("Клиенту %s:%s отправлен результат работы команды MIN_BY_SEMESTER_ENUM", socket.getInetAddress(), socket.getPort()));
+                }
+            } catch (DatabaseException | IOException e) {
+                e.printStackTrace();
+            }
+        });
     }
 
     @Override
-    public  void maxByGroupAdmin(SerializedCommand command, Socket socket) throws IOException, DatabaseException {
-        if (checkUser(command.getLogin(), command.getPassword(), socket)) {
-            sendObject(socket, new SerializedMessage(collectionManager.maxByGroupAdmin()));
-            logger.info(String.format("Клиенту %s:%s отправлен результат работы команды MAX_BY_GROUP_ADMIN", socket.getInetAddress(), socket.getPort()));
-        }
+    public void maxByGroupAdmin(SerializedCommand command, Socket socket) throws IOException, DatabaseException {
+        forkJoinPool.submit(() -> {
+            try {
+                if (checkUser(command.getLogin(), command.getPassword(), socket)) {
+                    sendObject(socket, new SerializedMessage(collectionManager.maxByGroupAdmin()));
+                    logger.info(String.format("Клиенту %s:%s отправлен результат работы команды MAX_BY_GROUP_ADMIN", socket.getInetAddress(), socket.getPort()));
+                }
+            } catch (DatabaseException | IOException e) {
+                e.printStackTrace();
+            }
+        });
     }
 
     @Override
     public void countByGroupAdmin(SerializedObjectCommand command, Socket socket) throws IOException, DatabaseException {
-        if (checkUser(command.getLogin(), command.getPassword(), socket)) {
-            Person groupAdmin = (Person) command.getObject();
-            if (validator.validatePerson(groupAdmin)) {
-                sendObject(socket, new SerializedMessage(collectionManager.countByGroupAdmin(groupAdmin)));
-            } else {
-                sendObject(socket, new SerializedMessage("Полученный элемент не прошел валидацию на стороне сервера."));
-            }
+        forkJoinPool.submit(() -> {
+            try {
+                if (checkUser(command.getLogin(), command.getPassword(), socket)) {
+                    Person groupAdmin = (Person) command.getObject();
+                    if (validator.validatePerson(groupAdmin)) {
+                        sendObject(socket, new SerializedMessage(collectionManager.countByGroupAdmin(groupAdmin)));
+                    } else {
+                        sendObject(socket, new SerializedMessage("Полученный элемент не прошел валидацию на стороне сервера."));
+                    }
 
-            logger.info(String.format("Клиенту %s:%s отправлен результат работы команды COUNT_BY_GROUP_ADMIN", socket.getInetAddress(), socket.getPort()));
-        }
+                    logger.info(String.format("Клиенту %s:%s отправлен результат работы команды COUNT_BY_GROUP_ADMIN", socket.getInetAddress(), socket.getPort()));
+                }
+            } catch (DatabaseException | IOException e) {
+                e.printStackTrace();
+            }
+        });
     }
 
     @Override
