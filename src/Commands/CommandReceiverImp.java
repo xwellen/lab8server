@@ -109,11 +109,13 @@ public class CommandReceiverImp implements CommandReceiver {
                 groupId = Integer.parseInt(command.getArg());
                 if (collectionUtils.checkExist(groupId)) {
                     try {
-                        StudyGroup studyGroup = (StudyGroup) command.getObject();
-                        databaseManager.updateById(studyGroup, groupId, command.getLogin());
-                        collectionManager.update(studyGroup, groupId);
+                        if (databaseManager.removeById(groupId, command.getLogin())) {
+                            StudyGroup studyGroup = (StudyGroup) command.getObject();
+                            databaseManager.updateById(studyGroup, groupId, command.getLogin());
+                            collectionManager.update(studyGroup, groupId);
 
-                        sendObject(socket, new SerializedMessage("Команда update выполнена."));
+                            sendObject(socket, new SerializedMessage("Команда update выполнена."));
+                        } else sendObject(socket, new SerializedMessage("Элемент с ID " + groupId + " создан другим пользователем."));
                     } catch (Exception e){
                         e.printStackTrace();
 
