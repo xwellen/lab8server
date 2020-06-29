@@ -1,6 +1,7 @@
 package Utils.CommandHandler;
 
 import Commands.Command;
+import Commands.SerializedAuth;
 import Commands.SerializedCommand;
 import Exceptions.DatabaseException;
 import Interfaces.CommandReceiver;
@@ -24,6 +25,10 @@ public class DecryptingImp implements Decrypting {
             SerializedCommand serializedCommand = (SerializedCommand) o;
             Command command = serializedCommand.getCommand();
             command.execute(serializedCommand, socket, commandReceiver);
+        }
+
+        if (o instanceof SerializedAuth) {
+            commandReceiver.
         }
     }
 }

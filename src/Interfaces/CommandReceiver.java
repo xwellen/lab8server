@@ -13,6 +13,8 @@ import java.net.Socket;
 public interface CommandReceiver {
     boolean checkUser(String login, String password, Socket socket) throws DatabaseException, IOException;
 
+    void tryAuth()
+
     void sendObject(Socket socket, SerializedMessage serializedMessage) throws IOException, DatabaseException;
 
     void info(SerializedCommand command, Socket socket) throws IOException, DatabaseException;
