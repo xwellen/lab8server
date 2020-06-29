@@ -58,11 +58,23 @@ public class CommandReceiverImp implements CommandReceiver {
             logger.info(String.format("Пользователь %s, живущий по адресу %s:%s - прошел проверку на реального ИТМОшника", login, socket.getInetAddress(), socket.getPort()));
             return true;
         } else {
-            sendObject(socket, new SerializedMessage("Дядя, ты не зарегистрирован в нашем гей-кружке, проваливай отсюда!"));
             logger.info(String.format("Товарищ %s:%s ошибся дверью, клуб кожевного ремесла два блока вниз.", socket.getInetAddress(), socket.getPort()));
         }
 
         return false;
+    }
+
+    @Override
+    public void tryAuth(String login, String password, Socket socket) throws DatabaseException, IOException {
+        boolean res = checkUser(login, password, socket);
+        executor.submit(() -> {
+            try {
+                ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
+                out.writeObject(new SerializedResAuth(res));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        });
     }
 
     @Override

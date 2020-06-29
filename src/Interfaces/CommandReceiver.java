@@ -13,7 +13,7 @@ import java.net.Socket;
 public interface CommandReceiver {
     boolean checkUser(String login, String password, Socket socket) throws DatabaseException, IOException;
 
-    void tryAuth()
+    void tryAuth(String login, String password, Socket socket) throws DatabaseException, IOException;
 
     void sendObject(Socket socket, SerializedMessage serializedMessage) throws IOException, DatabaseException;
 

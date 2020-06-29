@@ -28,7 +28,8 @@ public class DecryptingImp implements Decrypting {
         }
 
         if (o instanceof SerializedAuth) {
-            commandReceiver.
+            SerializedAuth serializedAuth = (SerializedAuth) o;
+            commandReceiver.tryAuth(serializedAuth.getLogin(), serializedAuth.getPassword(), socket);
         }
     }
 }

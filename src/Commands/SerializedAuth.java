@@ -1,6 +1,8 @@
 package Commands;
 
-public class SerializedAuth {
+import java.io.Serializable;
+
+public class SerializedAuth implements Serializable {
     private String login;
     private String password;
 
