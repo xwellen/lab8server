@@ -2,13 +2,15 @@ package Commands;
 
 import java.io.Serializable;
 
-public class SerializedAuth implements Serializable {
+public class SerializedAuthOrReg implements Serializable {
     private String login;
     private String password;
+    private String type;
 
-    SerializedAuth(String login, String password) {
+    SerializedAuthOrReg(String login, String password, String type) {
         this.login = login;
         this.password = password;
+        this.type = type;
     }
 
     public String getPassword() {
@@ -17,5 +19,9 @@ public class SerializedAuth implements Serializable {
 
     public String getLogin() {
         return login;
+    }
+
+    public String getType() {
+        return type;
     }
 }

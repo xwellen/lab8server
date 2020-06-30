@@ -41,7 +41,6 @@ public interface CommandReceiver {
 
     void countByGroupAdmin(SerializedObjectCommand command, Socket socket) throws IOException, DatabaseException;
 
-    void register(SerializedCommand command, Socket socket) throws IOException, DatabaseException;
-
+    void register(String login, String password, Socket socket) throws IOException, DatabaseException;
 
 }

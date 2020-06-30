@@ -70,7 +70,7 @@ public class CommandReceiverImp implements CommandReceiver {
         executor.submit(() -> {
             try {
                 ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
-                out.writeObject(new SerializedResAuth(res));
+                out.writeObject(new SerializedResAuth(res, "auth"));
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -304,12 +304,14 @@ public class CommandReceiverImp implements CommandReceiver {
     }
 
     @Override
-    public void register(SerializedCommand command, Socket socket) throws IOException, DatabaseException {
-        if (!databaseManager.doesUserExist(command.getLogin())) {
-            databaseManager.addUser(command.getLogin(), command.getPassword());
-            sendObject(socket, new SerializedMessage("Пользователь с логином " + command.getLogin() + " успешно создан!"));
-            logger.info(String.format("Пользователь %s успешно зарегистрирован!", command.getLogin()));
-        } else { sendObject(socket, new SerializedMessage("Пользователь с таким логином уже существует!")); }
+    public void register(String login, String password, Socket socket) throws IOException, DatabaseException {
+        boolean res = databaseManager.doesUserExist(login);
+        ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
+        if (!res) {
+            databaseManager.addUser(login, password);
+            out.writeObject(new SerializedResAuth(true, "reg"));
+            logger.info(String.format("Пользователь %s успешно зарегистрирован!", login));
+        } else { out.writeObject(new SerializedResAuth(false, "reg")); }
         logger.info(String.format("Клиенту %s:%s отправлен результат попытки регистрации", socket.getInetAddress(), socket.getPort()));
     }
 }
