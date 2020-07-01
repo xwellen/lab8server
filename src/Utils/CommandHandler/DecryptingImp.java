@@ -3,6 +3,7 @@ package Utils.CommandHandler;
 import Commands.Command;
 import Commands.SerializedAuthOrReg;
 import Commands.SerializedCommand;
+import Commands.SerializedCommands.SerializedMessage;
 import Exceptions.DatabaseException;
 import Interfaces.CommandReceiver;
 import Interfaces.Decrypting;
@@ -31,6 +32,11 @@ public class DecryptingImp implements Decrypting {
             SerializedAuthOrReg serializedAuth = (SerializedAuthOrReg) o;
             if (serializedAuth.getType().equals("auth")) commandReceiver.tryAuth(serializedAuth.getLogin(), serializedAuth.getPassword(), socket);
             if (serializedAuth.getType().equals("reg")) commandReceiver.register(serializedAuth.getLogin(), serializedAuth.getPassword(), socket);
+        }
+
+        if (o instanceof SerializedMessage) {
+            SerializedMessage serializedMessage = (SerializedMessage) o;
+            if (serializedMessage.getMessage().equals("return_collection")) commandReceiver.sendCollection(socket);
         }
     }
 }

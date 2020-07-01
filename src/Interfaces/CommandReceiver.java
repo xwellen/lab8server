@@ -43,4 +43,6 @@ public interface CommandReceiver {
 
     void register(String login, String password, Socket socket) throws IOException, DatabaseException;
 
+    void sendCollection(Socket socket) throws IOException;
+
 }
