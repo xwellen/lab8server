@@ -7,7 +7,6 @@ import java.sql.Connection;
 import java.util.List;
 
 public interface DatabaseManager {
-    void buildTables();
 
     Integer addElement(StudyGroup studyGroup, String username) throws DatabaseException;
 

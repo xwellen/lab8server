@@ -1,8 +1,5 @@
 package Utils.Database;
 
-import java.io.*;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -13,7 +10,6 @@ import Exceptions.DatabaseException;
 import Interfaces.*;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
-import org.apache.ibatis.jdbc.ScriptRunner;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,32 +32,6 @@ public class DatabaseManagerImp implements DatabaseManager {
             logger.error("Драйвер не подключён");
             e.printStackTrace();
             System.exit(1);
-        }
-        //buildTables();
-    }
-
-    @Override
-    public void buildTables(){
-        try {
-            Connection connection = DriverManager.getConnection(url, user, password);
-            ScriptRunner sr = new ScriptRunner(connection);
-            try {
-                Files.walk(Paths.get("src/Utils/Database/SQL"))
-                        .filter(Files::isRegularFile)
-                        .forEach(path -> {
-                            Reader reader = null;
-                            try {
-                                reader = new BufferedReader(new FileReader(String.valueOf(path)));
-                                sr.runScript(reader);
-                            } catch (FileNotFoundException e) {
-                                e.printStackTrace();
-                            }
-                        });
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
         }
     }
 
