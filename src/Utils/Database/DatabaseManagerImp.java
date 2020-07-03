@@ -377,6 +377,24 @@ public class DatabaseManagerImp implements DatabaseManager {
         });
     }
 
+
+    @Override
+    public List<List<Integer>> getIdElementsAllUsers() throws DatabaseException {
+        return handleQuery((Connection connection) -> {
+            String query = "SELECT login FROM \"user\"";
+
+            PreparedStatement statement = connection.prepareStatement(query);
+            ResultSet result = statement.executeQuery();
+
+            ArrayList<List<Integer>> res = new ArrayList<>();
+
+            while (result.next()) {
+                res.add(getIdOfUserElements(result.getString("login")));
+            }
+            return res;
+        });
+    }
+
     @Override
     public boolean validateUserData(String login, String password) throws DatabaseException {
         String realPassword = getPassword(login);

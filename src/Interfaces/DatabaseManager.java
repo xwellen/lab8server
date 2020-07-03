@@ -30,5 +30,7 @@ public interface DatabaseManager {
 
     List<Integer> getIdOfUserElements(String username) throws DatabaseException;
 
+    List<List<Integer>> getIdElementsAllUsers() throws DatabaseException;
+
     boolean validateUserData(String login, String password) throws DatabaseException;
 }

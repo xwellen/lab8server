@@ -13,7 +13,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.net.Socket;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ForkJoinPool;
@@ -318,9 +317,9 @@ public class CommandReceiverImp implements CommandReceiver {
     }
 
     @Override
-    public void sendCollection(Socket socket) throws IOException {
+    public void sendCollection(Socket socket) throws IOException, DatabaseException {
         ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
-        out.writeObject(new SerializedCollection(Lists.newLinkedList(collectionManager.getLinkedList())));
+        out.writeObject(new SerializedCollection(Lists.newLinkedList(collectionManager.getLinkedList()), databaseManager.getIdElementsAllUsers()));
         logger.info(String.format("Пользователю %s отправлена коллекция!", socket.getInetAddress()));
     }
 }
