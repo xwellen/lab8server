@@ -5,6 +5,7 @@ import BasicClasses.StudyGroup;
 import Commands.SerializedCommands.*;
 import Exceptions.DatabaseException;
 import Interfaces.*;
+import Utils.ObjectSizeFetcher;
 import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
@@ -318,8 +319,10 @@ public class CommandReceiverImp implements CommandReceiver {
 
     @Override
     public void sendCollection(Socket socket) throws IOException, DatabaseException {
+        SerializedCollection serializedCollection = new SerializedCollection(Lists.newLinkedList(collectionManager.getLinkedList()), databaseManager.getIdElementsAllUsers());
+        long size = ObjectSizeFetcher.getObjectSize(serializedCollection); // никак не используется 
         ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
-        out.writeObject(new SerializedCollection(Lists.newLinkedList(collectionManager.getLinkedList()), databaseManager.getIdElementsAllUsers()));
+        out.writeObject(serializedCollection);
         logger.info(String.format("Пользователю %s отправлена коллекция!", socket.getInetAddress()));
     }
 }
