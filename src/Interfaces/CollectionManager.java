@@ -3,7 +3,9 @@ package Interfaces;
 import BasicClasses.Person;
 import BasicClasses.StudyGroup;
 
+import java.net.Socket;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 public interface CollectionManager {
@@ -36,4 +38,6 @@ public interface CollectionManager {
     String countByGroupAdmin(Person groupAdmin);
 
     void appendToList(Object o);
+
+    ConcurrentHashMap<String, Socket> getActiveClients();
 }

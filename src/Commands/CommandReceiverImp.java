@@ -41,7 +41,10 @@ public class CommandReceiverImp implements CommandReceiver {
     }
 
     @Override
-    public void sendObject(Socket socket, SerializedMessage serializedMessage) throws IOException, DatabaseException {
+    public void sendObject(Socket socket, SerializedMessage serializedMessage, String commandName) throws IOException, DatabaseException {
+        if (commandName.matches("add|remove_by_id|remove_lower|remove_greater|update|clear")) {
+            // 
+        }
         executor.submit(() -> {
             try {
                 ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
@@ -71,6 +74,7 @@ public class CommandReceiverImp implements CommandReceiver {
         boolean res = checkUser(login, password, socket);
         executor.submit(() -> {
             try {
+                if (res) collectionManager.getActiveClients().put(login, socket);
                 ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
                 out.writeObject(new SerializedResAuth(res, "auth"));
             } catch (IOException e) {
@@ -82,7 +86,7 @@ public class CommandReceiverImp implements CommandReceiver {
     @Override
     public void info(SerializedCommand command, Socket socket) throws IOException, DatabaseException {
         if (checkUser(command.getLogin(), command.getPassword(), socket)) {
-            sendObject(socket, new SerializedMessage(collectionManager.getInfo()));
+            sendObject(socket, new SerializedMessage(collectionManager.getInfo()), "info");
 
             logger.info(String.format("Клиенту %s:%s отправлен результат работы команды INFO", socket.getInetAddress(), socket.getPort()));
         }
@@ -91,7 +95,7 @@ public class CommandReceiverImp implements CommandReceiver {
     @Override
     public void show(SerializedCommand command, Socket socket) throws IOException, DatabaseException {
         if (checkUser(command.getLogin(), command.getPassword(), socket)) {
-            sendObject(socket, new SerializedMessage(collectionManager.show()));
+            sendObject(socket, new SerializedMessage(collectionManager.show()), "show");
 
             logger.info(String.format("Клиенту %s:%s отправлен результат работы команды SHOW", socket.getInetAddress(), socket.getPort()));
         }
@@ -105,9 +109,9 @@ public class CommandReceiverImp implements CommandReceiver {
                 studyGroup.setId(databaseManager.addElement(studyGroup, command.getLogin()));
                 collectionManager.add(studyGroup);
 
-                sendObject(socket, new SerializedMessage("Элемент добавлен в коллекцию."));
+                sendObject(socket, new SerializedMessage(String.format("Пользователь %s добавил элемент в коллекцию", command.getLogin())), "add");
             } catch (Exception e) {
-                sendObject(socket, new SerializedMessage("Полученный элемент не добавлен."));
+                sendObject(socket, new SerializedMessage("Полученный элемент не добавлен."), "no_matter");
                 e.printStackTrace();
             }
 
@@ -128,18 +132,18 @@ public class CommandReceiverImp implements CommandReceiver {
                             databaseManager.updateById(studyGroup, groupId, command.getLogin());
                             collectionManager.update(studyGroup, groupId);
 
-                            sendObject(socket, new SerializedMessage("Команда update выполнена."));
-                        } else sendObject(socket, new SerializedMessage("Элемент с ID " + groupId + " создан другим пользователем."));
+                            sendObject(socket, new SerializedMessage(String.format("Пользователь %s обновил объект в коллекции", command.getLogin())), "update");
+                        } else sendObject(socket, new SerializedMessage("Элемент с ID " + groupId + " создан другим пользователем."), "no_matter");
                     } catch (Exception e){
                         e.printStackTrace();
 
-                        sendObject(socket, new SerializedMessage("Элемент не обновлен."));
+                        sendObject(socket, new SerializedMessage("Элемент не обновлен."), "no_matter");
                     }
                 } else {
-                    sendObject(socket, new SerializedMessage("Элемента с таким ID нет в коллекции."));
+                    sendObject(socket, new SerializedMessage("Элемента с таким ID нет в коллекции."), "no_matter");
                 }
             } catch (NumberFormatException e) {
-                sendObject(socket, new SerializedMessage("Команда не выполнена. Вы ввели некорректный аргумент."));
+                sendObject(socket, new SerializedMessage("Команда не выполнена. Вы ввели некорректный аргумент."), "no_matter");
             }
 
             logger.info(String.format("Клиенту %s:%s отправлен результат работы команды UPDATE", socket.getInetAddress(), socket.getPort()));
@@ -155,13 +159,13 @@ public class CommandReceiverImp implements CommandReceiver {
                 if (collectionUtils.checkExist(groupId)) {
                     if (databaseManager.removeById(groupId, command.getLogin())) {
                         collectionManager.removeById(groupId);
-                        sendObject(socket, new SerializedMessage("Элемент с ID " + groupId + " успешно удален из коллекции."));
-                    } else sendObject(socket, new SerializedMessage("Элемент с ID " + groupId + " создан другим пользователем."));
+                        sendObject(socket, new SerializedMessage(String.format("Пользователь %s удалил из коллекции объект с ID %s", command.getLogin(), groupId)), "remove_by_id");
+                    } else sendObject(socket, new SerializedMessage("Элемент с ID " + groupId + " создан другим пользователем."), "no_matter");
                 } else {
-                    sendObject(socket, new SerializedMessage("Элемента с таким ID нет в коллекции."));
+                    sendObject(socket, new SerializedMessage("Элемента с таким ID нет в коллекции."), "no_matter");
                 }
             } catch (NumberFormatException e) {
-                sendObject(socket, new SerializedMessage("Команда не выполнена. Вы ввели некорректный аргумент."));
+                sendObject(socket, new SerializedMessage("Команда не выполнена. Вы ввели некорректный аргумент."), "no_matter");
             }
 
             logger.info(String.format("Клиенту %s:%s отправлен результат работы команды REMOVE_BY_ID", socket.getInetAddress(), socket.getPort()));
@@ -174,7 +178,7 @@ public class CommandReceiverImp implements CommandReceiver {
             List<Integer> deleteID = databaseManager.clear(command.getLogin());
             deleteID.forEach(collectionManager::removeById);
 
-            sendObject(socket, new SerializedMessage("Ваши элементы колекции удалены."));
+            sendObject(socket, new SerializedMessage(String.format("Пользователь %s удалил свои элементы коллекции", command.getLogin())), "clear"); // ДОБАВИТЬ ID
             logger.info(String.format("Клиенту %s:%s отправлен результат работы команды CLEAR", socket.getInetAddress(), socket.getPort()));
         }
     }
@@ -182,7 +186,7 @@ public class CommandReceiverImp implements CommandReceiver {
     @Override
     public void head(SerializedCommand command, Socket socket) throws IOException, DatabaseException {
         if (checkUser(command.getLogin(), command.getPassword(), socket)) {
-            sendObject(socket, new SerializedMessage(collectionManager.head()));
+            sendObject(socket, new SerializedMessage(collectionManager.head()), "head");
             logger.info(String.format("Клиенту %s:%s отправлен результат работы команды HEAD", socket.getInetAddress(), socket.getPort()));
         }
     }
@@ -195,23 +199,23 @@ public class CommandReceiverImp implements CommandReceiver {
                     StudyGroup studyGroup = (StudyGroup) command.getObject();
                     if (validator.validateStudyGroup(studyGroup)) {
                         List<Integer> ids = collectionManager.removeGreater(studyGroup, databaseManager.getIdOfUserElements(command.getLogin()));
-                        if (ids.isEmpty()) sendObject(socket, new SerializedMessage("Таких элементов не найдено"));
-                        else sendObject(socket, new SerializedMessage("Из коллекции удалены элементы с ID: " +
-                                ids.toString().replaceAll("[\\[\\]]", "")));
+                        if (ids.isEmpty()) sendObject(socket, new SerializedMessage("Таких элементов не найдено"), "no_matter");
+                        else sendObject(socket, new SerializedMessage("Пользователь " + command.getLogin() + " удалил из коллекции объекты с ID: " +
+                                ids.toString().replaceAll("[\\[\\]]", "")), "remove_greater");
 
                         ids.forEach(id -> {
                             try {
                                 databaseManager.removeById(id, command.getLogin());
                             } catch (DatabaseException e) {
                                 try {
-                                    sendObject(socket, new SerializedMessage("Ошибка при удалении из бд элемента с id="+ id + "\n" + e));
+                                    sendObject(socket, new SerializedMessage("Ошибка при удалении из бд элемента с id="+ id + "\n" + e), "no_matter");
                                 } catch (IOException | DatabaseException ex) {
                                     ex.printStackTrace();
                                 }
                             }
                         });
                     } else {
-                        sendObject(socket, new SerializedMessage("Полученный элемент не прошел валидацию на стороне сервера."));
+                        sendObject(socket, new SerializedMessage("Полученный элемент не прошел валидацию на стороне сервера."), "no_matter");
                     }
 
                     logger.info(String.format("Клиенту %s:%s отправлен результат работы команды REMOVE_GREATER", socket.getInetAddress(), socket.getPort()));
@@ -230,23 +234,23 @@ public class CommandReceiverImp implements CommandReceiver {
                     StudyGroup studyGroup = (StudyGroup) command.getObject();
                     if (validator.validateStudyGroup(studyGroup)) {
                         List<Integer> ids = collectionManager.removeLower(studyGroup, databaseManager.getIdOfUserElements(command.getLogin()));
-                        if (ids.isEmpty()) sendObject(socket, new SerializedMessage("Таких элементов не найдено"));
-                        else sendObject(socket, new SerializedMessage("Из коллекции удалены элементы с ID: " +
-                                ids.toString().replaceAll("[\\[\\]]", "")));
+                        if (ids.isEmpty()) sendObject(socket, new SerializedMessage("Таких элементов не найдено"), "no_matter");
+                        else sendObject(socket, new SerializedMessage("Пользователь " + command.getLogin() + " удалил из коллекции объекты с ID: " +
+                                ids.toString().replaceAll("[\\[\\]]", "")), "remove_lower");
 
                         ids.forEach(id -> {
                             try {
                                 databaseManager.removeById(id, command.getLogin());
                             } catch (DatabaseException e) {
                                 try {
-                                    sendObject(socket, new SerializedMessage("Ошибка при удалении из бд элемента с id=" + id + "\n" + e));
+                                    sendObject(socket, new SerializedMessage("Ошибка при удалении из бд элемента с id=" + id + "\n" + e), "no_matter");
                                 } catch (IOException | DatabaseException ex) {
                                     ex.printStackTrace();
                                 }
                             }
                         });
                     } else {
-                        sendObject(socket, new SerializedMessage("Полученный элемент не прошел валидацию на стороне сервера."));
+                        sendObject(socket, new SerializedMessage("Полученный элемент не прошел валидацию на стороне сервера."), "no_matter");
                     }
 
                     logger.info(String.format("Клиенту %s:%s отправлен результат работы команды REMOVE_LOWER", socket.getInetAddress(), socket.getPort()));
@@ -262,7 +266,7 @@ public class CommandReceiverImp implements CommandReceiver {
         forkJoinPool.submit(() -> {
             try {
                 if (checkUser(command.getLogin(), command.getPassword(), socket)) {
-                    sendObject(socket, new SerializedMessage(collectionManager.minBySemesterEnum()));
+                    sendObject(socket, new SerializedMessage(collectionManager.minBySemesterEnum()), "no_matter");
                     logger.info(String.format("Клиенту %s:%s отправлен результат работы команды MIN_BY_SEMESTER_ENUM", socket.getInetAddress(), socket.getPort()));
                 }
             } catch (DatabaseException | IOException e) {
@@ -276,7 +280,7 @@ public class CommandReceiverImp implements CommandReceiver {
         forkJoinPool.submit(() -> {
             try {
                 if (checkUser(command.getLogin(), command.getPassword(), socket)) {
-                    sendObject(socket, new SerializedMessage(collectionManager.maxByGroupAdmin()));
+                    sendObject(socket, new SerializedMessage(collectionManager.maxByGroupAdmin()), "no_matter");
                     logger.info(String.format("Клиенту %s:%s отправлен результат работы команды MAX_BY_GROUP_ADMIN", socket.getInetAddress(), socket.getPort()));
                 }
             } catch (DatabaseException | IOException e) {
@@ -292,9 +296,9 @@ public class CommandReceiverImp implements CommandReceiver {
                 if (checkUser(command.getLogin(), command.getPassword(), socket)) {
                     Person groupAdmin = (Person) command.getObject();
                     if (validator.validatePerson(groupAdmin)) {
-                        sendObject(socket, new SerializedMessage(collectionManager.countByGroupAdmin(groupAdmin)));
+                        sendObject(socket, new SerializedMessage(collectionManager.countByGroupAdmin(groupAdmin)), "no_matter");
                     } else {
-                        sendObject(socket, new SerializedMessage("Полученный элемент не прошел валидацию на стороне сервера."));
+                        sendObject(socket, new SerializedMessage("Полученный элемент не прошел валидацию на стороне сервера."), "no_matter");
                     }
 
                     logger.info(String.format("Клиенту %s:%s отправлен результат работы команды COUNT_BY_GROUP_ADMIN", socket.getInetAddress(), socket.getPort()));

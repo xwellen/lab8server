@@ -6,8 +6,10 @@ import Interfaces.CollectionUtils;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
+import java.net.Socket;
 import java.time.ZonedDateTime;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.stream.Collectors;
 
@@ -20,6 +22,7 @@ public class CollectionManagerImp implements CollectionManager {
     private ZonedDateTime creationDate;
     private List res = new ArrayList();
     private final CollectionUtils collectionUtils;
+    private ConcurrentHashMap<String, Socket> activeClients = new ConcurrentHashMap<String, Socket>();
 
     @Inject
     public CollectionManagerImp(CollectionUtils collectionUtils) {
@@ -152,5 +155,9 @@ public class CollectionManagerImp implements CollectionManager {
     @Override
     public void appendToList(Object o){
         res.add(o);
+    }
+
+    public ConcurrentHashMap<String, Socket> getActiveClients() {
+        return activeClients;
     }
 }

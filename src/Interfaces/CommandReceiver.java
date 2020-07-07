@@ -15,7 +15,7 @@ public interface CommandReceiver {
 
     void tryAuth(String login, String password, Socket socket) throws DatabaseException, IOException;
 
-    void sendObject(Socket socket, SerializedMessage serializedMessage) throws IOException, DatabaseException;
+    void sendObject(Socket socket, SerializedMessage serializedMessage, String commandName) throws IOException, DatabaseException;
 
     void info(SerializedCommand command, Socket socket) throws IOException, DatabaseException;
 
