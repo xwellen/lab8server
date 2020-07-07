@@ -320,7 +320,7 @@ public class CommandReceiverImp implements CommandReceiver {
     @Override
     public void sendCollection(Socket socket) throws IOException, DatabaseException {
         SerializedCollection serializedCollection = new SerializedCollection(Lists.newLinkedList(collectionManager.getLinkedList()), databaseManager.getIdElementsAllUsers());
-        long size = ObjectSizeFetcher.getObjectSize(serializedCollection); // никак не используется 
+        //long size = ObjectSizeFetcher.getObjectSize(serializedCollection);
         ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
         out.writeObject(serializedCollection);
         logger.info(String.format("Пользователю %s отправлена коллекция!", socket.getInetAddress()));
