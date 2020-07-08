@@ -67,7 +67,6 @@ public class ControllerImp implements Controller {
 
                             } catch (EOFException | SocketException ex) {
                                 logger.info("Клиент " + clientSocket + " того, откинулся...");
-                                collectionManager.getActiveClients().values().remove(clientSocket);
                                 Thread.currentThread().interrupt();
                             } catch (InterruptedException | DatabaseException e) {
                                 e.printStackTrace();

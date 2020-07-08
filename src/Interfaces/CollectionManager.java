@@ -39,5 +39,4 @@ public interface CollectionManager {
 
     void appendToList(Object o);
 
-    ConcurrentHashMap<String, Socket> getActiveClients();
 }
