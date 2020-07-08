@@ -36,7 +36,7 @@ public class DecryptingImp implements Decrypting {
 
         if (o instanceof SerializedMessage) {
             SerializedMessage serializedMessage = (SerializedMessage) o;
-            if (serializedMessage.getMessage().equals("return_collection")) commandReceiver.sendCollection(socket);
+            if (serializedMessage.getMessage().equals("return_collection_init")) commandReceiver.sendCollection(socket, "init");
         }
     }
 }
