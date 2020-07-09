@@ -123,8 +123,8 @@ public class CommandReceiverImp implements CommandReceiver {
                 groupId = Integer.parseInt(command.getArg());
                 if (collectionUtils.checkExist(groupId)) {
                     try {
-                        if (databaseManager.removeById(groupId, command.getLogin())) {
-                            StudyGroup studyGroup = (StudyGroup) command.getObject();
+                        StudyGroup studyGroup = (StudyGroup) command.getObject();
+                        if (databaseManager.updateById(studyGroup, groupId, command.getLogin())) {
                             databaseManager.updateById(studyGroup, groupId, command.getLogin());
                             collectionManager.update(studyGroup, groupId);
 
