@@ -50,22 +50,17 @@ public class CollectionManagerImp implements CollectionManager {
     @Override
     public String getInfo() {
         String info = "";
-        info += "Тип коллекции – " + linkedList.getClass().getName() + "\n";
-        info += "Дата инициализации коллекции – " + creationDate + "\n";
-        info += "Количество элементов в коллекции – " + linkedList.size() + "\n";
+        info += "%type " + linkedList.getClass().getName() + "\n";
+        info += "%data " + creationDate + "\n";
+        info += "%size " + linkedList.size() + "\n";
         info += "_________________________________________________________\n";
 
         return info;
     }
 
     @Override
-    public String show() {
-        String info = linkedList
-                .stream()
-                .map(collectionUtils::display)
-                .collect(Collectors.joining(", ")    );
-        if (info.equals("")) { info = "На данный момент коллекция пуста."; }
-        return info;
+    public LinkedList<StudyGroup> show() {
+        return new LinkedList<>(linkedList);
     }
 
     @Override
@@ -95,9 +90,10 @@ public class CollectionManagerImp implements CollectionManager {
     }
 
     @Override
-    public String head() {
-        if (linkedList.size() > 0) { return collectionUtils.display(linkedList.peek()); }
-        else { return  "Коллекция пуста."; }
+    public LinkedList<StudyGroup> head() {
+        LinkedList<StudyGroup> res = new LinkedList<>();
+        res.add(linkedList.peek());
+        return res;
     }
 
     @Override
@@ -131,19 +127,19 @@ public class CollectionManagerImp implements CollectionManager {
     }
 
     @Override
-    public String minBySemesterEnum() {
-        if (linkedList.size() > 0) {
-            return collectionUtils.display(Collections.min(linkedList,
-                    Comparator.comparingInt(studyGroup -> studyGroup.getSemesterEnum().getValue())));
-        } else { return "Коллекция пуста."; }
+    public LinkedList<StudyGroup> minBySemesterEnum() {
+        LinkedList<StudyGroup> res = new LinkedList<>();
+        res.add(Collections.min(linkedList,
+                Comparator.comparingInt(studyGroup -> studyGroup.getSemesterEnum().getValue())));
+        return res;
     }
 
     @Override
-    public String maxByGroupAdmin() {
-        if (linkedList.size() > 0) {
-            return collectionUtils.display(Collections.max(linkedList,
-                    Comparator.comparingInt(studyGroup -> studyGroup.getGroupAdmin().compareValue())));
-        } else { return "Коллекция пуста."; }
+    public LinkedList<StudyGroup> maxByGroupAdmin() {
+        LinkedList<StudyGroup> res = new LinkedList<>();
+        res.add(Collections.max(linkedList,
+                Comparator.comparingInt(studyGroup -> studyGroup.getGroupAdmin().compareValue())));
+        return res;
     }
 
     @Override

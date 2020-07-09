@@ -4,6 +4,7 @@ import BasicClasses.Person;
 import BasicClasses.StudyGroup;
 
 import java.net.Socket;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -17,7 +18,7 @@ public interface CollectionManager {
 
     String getInfo();
 
-    String show();
+    LinkedList<StudyGroup> show();
 
     void update(StudyGroup groupToUpdate, Integer elementId);
 
@@ -25,15 +26,15 @@ public interface CollectionManager {
 
     void clear();
 
-    String head();
+    LinkedList<StudyGroup> head();
 
     List<Integer> removeGreater(StudyGroup studyGroup, List<Integer> ids);
 
     List<Integer> removeLower(StudyGroup studyGroup, List<Integer> ids);
 
-    String minBySemesterEnum();
+    LinkedList<StudyGroup> minBySemesterEnum();
 
-    String maxByGroupAdmin();
+    LinkedList<StudyGroup> maxByGroupAdmin();
 
     String countByGroupAdmin(Person groupAdmin);
 
