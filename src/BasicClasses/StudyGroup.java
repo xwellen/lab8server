@@ -6,6 +6,7 @@ import java.time.ZonedDateTime;
 
 
 public class StudyGroup implements Comparable<StudyGroup>, Serializable {
+    private static final long serialVersionUID = 32L;
     private Integer id;
     private String name;
     private Coordinates coordinates;
