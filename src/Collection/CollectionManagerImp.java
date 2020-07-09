@@ -53,7 +53,6 @@ public class CollectionManagerImp implements CollectionManager {
         info += "%type " + linkedList.getClass().getName() + "\n";
         info += "%data " + creationDate + "\n";
         info += "%size " + linkedList.size() + "\n";
-        info += "_________________________________________________________\n";
 
         return info;
     }
