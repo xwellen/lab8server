@@ -174,7 +174,7 @@ public class CommandReceiverImp implements CommandReceiver {
             List<Integer> deleteID = databaseManager.clear(command.getLogin());
             deleteID.forEach(collectionManager::removeById);
 
-            sendObject(socket, new SerializedMessage("свои элементы коллекции удалены"));
+            sendObject(socket, new SerializedMessage("ваши элементы коллекции удалены"));
             logger.info(String.format("Клиенту %s:%s отправлен результат работы команды CLEAR", socket.getInetAddress(), socket.getPort()));
         }
     }
