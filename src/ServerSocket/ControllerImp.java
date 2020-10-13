@@ -54,7 +54,7 @@ public class ControllerImp implements Controller {
                 logger.info("Сервер запущен!");
                 while (true) {
                     Socket clientSocket = server.accept();
-                    logger.info("А я все думал, когда же ты появишься: " + clientSocket);
+                    logger.info("Подключился пользователь: " + clientSocket);
                     new Thread(() -> {
                         ObjectInputStream in = null;
                         try {
@@ -66,7 +66,7 @@ public class ControllerImp implements Controller {
                                 }
 
                             } catch (EOFException | SocketException ex) {
-                                logger.info("Клиент " + clientSocket + " того, откинулся...");
+                                logger.info("Клиент " + clientSocket + " отключился от сервера");
                                 Thread.currentThread().interrupt();
                             } catch (InterruptedException | DatabaseException e) {
                                 e.printStackTrace();

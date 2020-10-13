@@ -17,7 +17,7 @@ import org.slf4j.LoggerFactory;
 public class DatabaseManagerImp implements DatabaseManager {
     private final String url = "jdbc:postgresql://localhost:5432/ITMO";
     private final String user = "postgres";
-    private final String password = "sasha";
+    private final String password = "0000";
     private final String salty = "Pozhalyista_Postavte_10_ballov";
     private static final Logger logger = LoggerFactory.getLogger(DatabaseManagerImp.class);
     private final HashEncrypter hashEncrypter;
